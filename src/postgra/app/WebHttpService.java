@@ -12,6 +12,7 @@ import postgra.handler.PersonaLogout;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import postgra.service.CreateDatabase;
 import vellum.exception.Exceptions;
 import vellum.httphandler.WebHttpHandler;
 import vellum.jx.JMap;
@@ -27,7 +28,7 @@ public class WebHttpService implements HttpHandler {
     private final WebHttpHandler webHandler;
     private int requestCount = 0;
     private int requestCompletedCount = 0;
-    
+
     public WebHttpService(PostgraApp app) {
         this.app = app;
         webHandler = new WebHttpHandler("/frontend/app", app.getProperties());
@@ -38,51 +39,37 @@ public class WebHttpService implements HttpHandler {
         requestCount++;
         String path = httpExchange.getRequestURI().getPath();
         logger.info("handle {}", path);
-        Thread.currentThread().setName(path);        
+        Thread.currentThread().setName(path);
         try {
             app.ensureInitialized();
-            if (path.equals("/app/personaLogin")) {
+            if (path.equals("/api/personaLogin")) {
                 handle(new PersonaLogin(), new PostgraHttpx(app, httpExchange));
-            } else if (path.equals("/app/personaLogout")) {
+            } else if (path.equals("/api/personaLogout")) {
                 handle(new PersonaLogout(), new PostgraHttpx(app, httpExchange));
-            } else if (path.startsWith("/app/")) {
-                String handlerName = getHandlerName(path);
-                if (handlerName != null) {
-                    handle(getHandler(handlerName), new PostgraHttpx(app, httpExchange));
+            } else if (path.startsWith("/api/")) {
+                if (path.startsWith("/api/createDatabase")) {
+                    handle(new CreateDatabase(), new PostgraHttpx(app, httpExchange));
                 } else {
                     new ErrorHttpHandler(app).handle(httpExchange, "Service not found: " + path);
                 }
             } else {
                 webHandler.handle(httpExchange);
             }
-        } catch (Throwable e) {
-            String errorMessage = Exceptions.getMessage(e);
-            logger.warn("error {} {}", path, errorMessage);
-            e.printStackTrace(System.err);
-            new ErrorHttpHandler(app).handle(httpExchange, errorMessage);
+        } catch (RuntimeException e) {
+            handle(httpExchange, e);
+        } catch (InterruptedException | IOException e) {
+            handle(httpExchange, e);
         } finally {
             requestCompletedCount++;
         }
     }
 
-    private String getHandlerName(String path) {
-        int index = path.lastIndexOf("/forwarded");
-        if (index > 0) {
-            path = path.substring(0, index);
-        }
-        final String handlerPathPrefix = "/encryptoapp/";
-        if (path.startsWith(handlerPathPrefix)) {
-            return path.substring(handlerPathPrefix.length());
-        }
-        return null;
-    }
-
-    private PostgraHttpxHandler getHandler(String handlerName) throws ClassNotFoundException,
-            InstantiationException, IllegalAccessException {
-        String className = "encrypto.handler."
-                + Character.toUpperCase(handlerName.charAt(0)) + handlerName.substring(1);
-        logger.trace("handler {}", className);
-        return (PostgraHttpxHandler) Class.forName(className).newInstance();
+    private void handle(HttpExchange httpExchange, Throwable e) throws IOException {
+        String path = httpExchange.getRequestURI().getPath();
+        String errorMessage = Exceptions.getMessage(e);
+        logger.warn("error {} {}", path, errorMessage);
+        e.printStackTrace(System.err);
+        new ErrorHttpHandler(app).handle(httpExchange, errorMessage);
     }
 
     private void handle(PostgraHttpxHandler handler, PostgraHttpx httpx) {
@@ -93,14 +80,20 @@ public class WebHttpService implements HttpHandler {
             logger.trace("response {}", responseMap);
             httpx.sendResponse(responseMap);
             es.commit();
-        } catch (Throwable e) {
-            httpx.sendError(e);
-            es.rollback();
-            e.printStackTrace(System.out);
+        } catch (RuntimeException e) {
+            handleError(httpx, es, e);
+        } catch (Exception e) {
+            handleError(httpx, es, e);
         } finally {
             es.close();
             httpx.close();
         }
+    }
+
+    private void handleError(PostgraHttpx httpx, PostgraEntityService es, Throwable e) {
+        httpx.sendError(e);
+        es.rollback();
+        e.printStackTrace(System.out);
     }
 
     private void handle(PlainHttpxHandler handler, PostgraHttpx httpx) {
@@ -111,7 +104,11 @@ public class WebHttpService implements HttpHandler {
             logger.trace("response {}", response);
             httpx.sendPlainResponse(response);
             es.commit();
-        } catch (Throwable e) {
+        } catch (RuntimeException e) {
+            httpx.sendPlainError(String.format("ERROR: %s\n", e.getMessage()));
+            es.rollback();
+            e.printStackTrace(System.out);
+        } catch (Exception e) {
             httpx.sendPlainError(String.format("ERROR: %s\n", e.getMessage()));
             es.rollback();
             e.printStackTrace(System.out);
@@ -119,7 +116,7 @@ public class WebHttpService implements HttpHandler {
             es.close();
         }
     }
-    
+
     public JMap getMetrics() {
         JMap map = new JMap();
         map.put("requestCount", requestCount);

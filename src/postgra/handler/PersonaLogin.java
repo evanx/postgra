@@ -13,11 +13,9 @@ import postgra.entity.Person;
 import postgra.persona.PersonaInfo;
 import postgra.persona.PersonaVerifier;
 import java.util.Date;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vellum.jx.JMap;
-import vellum.util.Lists;
 
 /**
  *

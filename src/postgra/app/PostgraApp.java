@@ -40,6 +40,7 @@ import vellum.ssl.OpenTrustManager;
 public class PostgraApp {
 
     Logger logger = LoggerFactory.getLogger(PostgraApp.class);
+    static final String persistenceUnit = "postgraPU";
     PostgraProperties properties;
     Mailer mailer;
     VellumHttpsServer webServer = new VellumHttpsServer();
@@ -73,7 +74,7 @@ public class PostgraApp {
     }
 
     public void initDeferred() throws Exception {
-        emf = Persistence.createEntityManagerFactory("encryptoPU");;
+        emf = Persistence.createEntityManagerFactory(persistenceUnit);
         initalized = true;
         logger.info("initialized");
         messageThread.start();
