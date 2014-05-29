@@ -1,7 +1,7 @@
 /*
  * Source https://github.com/evanx by @evanxsummers
  */
-package postgra.handler;
+package postgra.web;
 
 import com.sun.net.httpserver.HttpExchange;
 import postgra.app.PostgraApp;

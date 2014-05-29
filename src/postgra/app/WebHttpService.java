@@ -6,13 +6,13 @@ package postgra.app;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import postgra.handler.ErrorHttpHandler;
-import postgra.handler.PersonaLogin;
-import postgra.handler.PersonaLogout;
+import postgra.web.ErrorHttpHandler;
+import postgra.web.PersonaLogin;
+import postgra.web.PersonaLogout;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import postgra.service.CreateDatabase;
+import postgra.api.CreateDatabase;
 import vellum.exception.Exceptions;
 import vellum.httphandler.WebHttpHandler;
 import vellum.jx.JMap;
@@ -94,27 +94,6 @@ public class WebHttpService implements HttpHandler {
         httpx.sendError(e);
         es.rollback();
         e.printStackTrace(System.out);
-    }
-
-    private void handle(PlainHttpxHandler handler, PostgraHttpx httpx) {
-        PostgraEntityService es = new PostgraEntityService(app);
-        try {
-            es.begin();
-            String response = handler.handle(app, httpx, es);
-            logger.trace("response {}", response);
-            httpx.sendPlainResponse(response);
-            es.commit();
-        } catch (RuntimeException e) {
-            httpx.sendPlainError(String.format("ERROR: %s\n", e.getMessage()));
-            es.rollback();
-            e.printStackTrace(System.out);
-        } catch (Exception e) {
-            httpx.sendPlainError(String.format("ERROR: %s\n", e.getMessage()));
-            es.rollback();
-            e.printStackTrace(System.out);
-        } finally {
-            es.close();
-        }
     }
 
     public JMap getMetrics() {

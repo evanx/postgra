@@ -2,7 +2,7 @@
  * Source https://github.com/evanx by @evanxsummers
  * 
  */
-package postgra.handler;
+package postgra.web;
 
 import postgra.app.PostgraApp;
 import postgra.app.PostgraCookie;
