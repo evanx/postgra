@@ -29,11 +29,11 @@ public class CreatePrimaryKey implements PostgraHttpxHandler {
         String database = requestMap.getString("database");
         String user = requestMap.getString("user");
         String password = requestMap.getString("password");
-        String index = requestMap.getString("index");
+        String table = requestMap.getString("table");
         String sql = requestMap.getString("sql");
         Connection connection = RowSets.getLocalPostgresConnection(database, user, password);
         try {
-            sql = String.format("create index %s (%s)", index, sql);
+            sql = String.format("alter table %s (%s)", table, sql);
             logger.info("sql {}", sql);
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.execute();

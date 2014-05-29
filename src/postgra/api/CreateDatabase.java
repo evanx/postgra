@@ -27,12 +27,19 @@ public class CreateDatabase implements PostgraHttpxHandler {
         logger.info("handle", httpx.getPathArgs());
         JMap requestMap = httpx.parseJsonMap();
         String database = requestMap.getString("database");
-        String user = requestMap.getString("user");
         String password = requestMap.getString("password");
+        if (requestMap.containsKey("username")) {
+            logger.error("username not used");
+        }
+        String user = database;
         Connection connection = RowSets.getLocalPostgresConnection("template1", "postgra", "postgra");
         try {
             String sql = "create database " + database;
             PreparedStatement statement = connection.prepareStatement(sql);
+            statement.execute();
+            RowSets.close(statement);
+            sql = String.format("create user %s login password '%s'", user, password);
+            statement = connection.prepareStatement(sql);
             statement.execute();
             RowSets.close(statement);
             sql = String.format("alter database %s owner to %s", database, user);

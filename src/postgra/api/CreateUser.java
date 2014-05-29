@@ -26,6 +26,7 @@ public class CreateUser implements PostgraHttpxHandler {
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
         JMap requestMap = httpx.parseJsonMap();
+        String database = requestMap.getString("database");
         String user = requestMap.getString("user");
         String password = requestMap.getString("password");
         Connection connection = RowSets.getLocalPostgresConnection("template1", "postgra", "postgra");
@@ -33,6 +34,10 @@ public class CreateUser implements PostgraHttpxHandler {
             String sql = String.format("create user %s login password '%s'", user, password);
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.execute();
+            sql = String.format("grant all on database %s to %s", database, user);
+            statement = connection.prepareStatement(sql);
+            statement.execute();
+            RowSets.close(statement);
             JMap response = new JMap();
             response.put("pathArgs", httpx.getPathArgs());
             response.put("sql", sql);

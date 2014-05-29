@@ -41,8 +41,8 @@ c1dropDatabase() {
 }  
 
 c0default() {
-  c2curl createUser "{ $databaseJson }"
   c2curl createDatabase "{ $databaseJson }"
+  c2curl createUser "{ $databaseJson }"
   c2curl createTable "{ $tableJson, sql: 'id int, name text' }"
   c2curl dropTable "{ $tableJson }"
   c2curl dropDatabase "{ $databaseJson }"

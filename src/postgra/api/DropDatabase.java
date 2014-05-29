@@ -27,12 +27,19 @@ public class DropDatabase implements PostgraHttpxHandler {
         logger.info("handle", httpx.getPathArgs());
         JMap requestMap = httpx.parseJsonMap();
         String database = requestMap.getString("database");
-        String user = requestMap.getString("user");
+        if (requestMap.containsKey("username")) {
+            logger.error("username not used");
+        }
+        String user = database;
         String password = requestMap.getString("password");
         Connection connection = RowSets.getLocalPostgresConnection("template1", "postgra", "postgra");
         try {
             String sql = "drop database " + database;
             PreparedStatement statement = connection.prepareStatement(sql);
+            statement.execute();
+            RowSets.close(statement);
+            sql = String.format("drop user %s", user);
+            statement = connection.prepareStatement(sql);
             statement.execute();
             JMap response = new JMap();
             response.put("pathArgs", httpx.getPathArgs());
