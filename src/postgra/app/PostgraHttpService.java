@@ -18,6 +18,9 @@ import postgra.api.CreateIndex;
 import postgra.api.CreatePrimaryKey;
 import postgra.api.CreateTable;
 import postgra.api.CreateUser;
+import postgra.api.DropDatabase;
+import postgra.api.DropTable;
+import postgra.api.DropUser;
 import vellum.exception.Exceptions;
 import vellum.httphandler.WebHttpHandler;
 import vellum.jx.JMap;
@@ -26,15 +29,15 @@ import vellum.jx.JMap;
  *
  * @author evan.summers
  */
-public class WebHttpService implements HttpHandler {
+public class PostgraHttpService implements HttpHandler {
 
-    private final static Logger logger = LoggerFactory.getLogger(WebHttpService.class);
+    private final static Logger logger = LoggerFactory.getLogger(PostgraHttpService.class);
     private final PostgraApp app;
     private final WebHttpHandler webHandler;
     private int requestCount = 0;
     private int requestCompletedCount = 0;
 
-    public WebHttpService(PostgraApp app) {
+    public PostgraHttpService(PostgraApp app) {
         this.app = app;
         webHandler = new WebHttpHandler("/frontend/app", app.getProperties());
     }
@@ -66,26 +69,6 @@ public class WebHttpService implements HttpHandler {
         }
     }
 
-    private PostgraHttpxHandler newHandler(String path) throws Exception {
-        if (path.startsWith("/api/createDatabase")) {
-            return new CreateDatabase();
-        } else if (path.startsWith("/api/createUser")) {
-            return new CreateUser();
-        } else if (path.startsWith("/api/createTable")) {
-            return new CreateTable();
-        } else if (path.startsWith("/api/creatIndex")) {
-            return new CreateIndex();
-        } else if (path.startsWith("/api/createForeignKey")) {
-            return new CreateForeignKey();
-        } else if (path.startsWith("/api/createCreatePrimaryKey")) {
-            return new CreatePrimaryKey();
-        } else if (path.startsWith("/api/createCreatePrimaryKey")) {
-            return new CreatePrimaryKey();
-        } else {
-            throw new Exception("Service not found: " + path);
-        }
-    }
-
     private void handle(HttpExchange httpExchange, Throwable e) throws IOException {
         String path = httpExchange.getRequestURI().getPath();
         String errorMessage = Exceptions.getMessage(e);
@@ -93,10 +76,36 @@ public class WebHttpService implements HttpHandler {
         new ErrorHttpHandler(app).handle(httpExchange, errorMessage);
     }
 
-    private void handle(PostgraHttpxHandler handler, HttpExchange httpExchange) {
-        handle(handler, new PostgraHttpx(app, httpExchange));                
+    private PostgraHttpxHandler newHandler(String path) throws Exception {
+        if (path.startsWith("/api/createDatabase")) {
+            return new CreateDatabase();
+        } else if (path.startsWith("/api/dropDatabase")) {
+            return new DropDatabase();
+        } else if (path.startsWith("/api/createUser")) {
+            return new CreateUser();
+        } else if (path.startsWith("/api/dropUser")) {
+            return new DropUser();
+        } else if (path.startsWith("/api/createTable")) {
+            return new CreateTable();
+        } else if (path.startsWith("/api/dropTable")) {
+            return new DropTable();
+        } else if (path.startsWith("/api/createIndex")) {
+            return new CreateIndex();
+        } else if (path.startsWith("/api/dropIndex")) {
+        } else if (path.startsWith("/api/createCreatePrimaryKey")) {
+            return new CreatePrimaryKey();
+        } else if (path.startsWith("/api/dropCreatePrimaryKey")) {
+        } else if (path.startsWith("/api/createForeignKey")) {
+            return new CreateForeignKey();
+        } else if (path.startsWith("/api/dropForeignKey")) {
+        }
+        throw new Exception("Service not found: " + path);
     }
-    
+
+    private void handle(PostgraHttpxHandler handler, HttpExchange httpExchange) {
+        handle(handler, new PostgraHttpx(app, httpExchange));
+    }
+
     private void handle(PostgraHttpxHandler handler, PostgraHttpx httpx) {
         PostgraEntityService es = new PostgraEntityService(app);
         try {

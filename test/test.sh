@@ -1,25 +1,37 @@
 
 
+user=test1user
+database=test2
+password=$user
+table=test3table
+userJson="user: '$user', password: '$password'"
+databaseJson="database: '$database', $userJson"
+tableJson="table: '$table', $databaseJson"
+
 c1curl() {
-  curl -k https://localhost:8443/api/$1
+  curl -k https://localhost:8443/api/$1 
+  curlCode=$?  
+  echo 
+}
+
+c2curl() {
+  echo "$@"
+  curl -k https://localhost:8443/api/$1 -d "$2" 
   curlCode=$?  
   echo 
 }
 
 c1psqlc() {
   psql -h localhost postgra postgra -c "$1" 
-
 }
 
-c1createUser() {
-  c1curl createUser/$1 &&
-    psql -h localhost postgra postgra -c "\du" && 
-    psql -h localhost postgra postgra -c "drop role $1" 
-}
-c1createDatabase() {
-  c1curl createDatabase/$1 &&
-    psql -h localhost postgra postgra -c "\l" && 
-    psql -h localhost postgra postgra -c "drop database $1" 
+c2drop() {
+  c1psqlc "drop $1 $2"
+}  
+
+c2createDatabase() {
+  c1curl createDatabase/$1 "$2" &&
+    psql -h localhost postgra postgra -c "\l" 
 }
 
 c1dropDatabase() {
@@ -28,18 +40,16 @@ c1dropDatabase() {
     c1psqlc "\l" 
 }  
 
-c1dropRole() {
-  c1psqlc "\du" | grep $1 &&
-    c1psqlc "drop role $1" &&
-    c1psqlc "\du" 
-}  
-
 c0default() {
-  c1dropRole test1u
-  c1createUser test1u
-  c1dropDatabase test1
-  c1createDatabase test1
-  c1dropDatabase test1
+  c2curl createUser "{ $databaseJson }"
+  c2curl createDatabase "{ $databaseJson }"
+  c2curl createTable "{ $tableJson, sql: 'id int, name text' }"
+  c2curl dropTable "{ $tableJson }"
+  c2curl dropDatabase "{ $databaseJson }"
+  c2curl dropUser "{ $userJson }"
+  c2drop table $table
+  c2drop role $user
+  c2drop database $database
 }
 
 if [ $# -gt 0 ]

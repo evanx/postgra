@@ -18,9 +18,9 @@ import vellum.jx.JMap;
  *
  * @author evan.summers
  */
-public class CreateForeignKey implements PostgraHttpxHandler {
+public class DropTable implements PostgraHttpxHandler {
     
-    private static Logger logger = LoggerFactory.getLogger(CreateForeignKey.class); 
+    private static Logger logger = LoggerFactory.getLogger(DropTable.class); 
 
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
@@ -29,18 +29,16 @@ public class CreateForeignKey implements PostgraHttpxHandler {
         String database = requestMap.getString("database");
         String user = requestMap.getString("user");
         String password = requestMap.getString("password");
-        String index = requestMap.getString("index");
-        String sql = requestMap.getString("sql");
+        String table = requestMap.getString("table");
         Connection connection = RowSets.getLocalPostgresConnection(database, user, password);
         try {
-            sql = String.format("create index %s (%s)", index, sql);
-            logger.info("sql {}", sql);
+            String sql = String.format("drop table %s", table);
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.execute();
-            JMap responseMap = new JMap();
-            responseMap.put("pathArgs", httpx.getPathArgs());
-            responseMap.put("sql", sql);
-            return responseMap;            
+            JMap response = new JMap();
+            response.put("pathArgs", httpx.getPathArgs());
+            response.put("sql", sql);
+            return response;
         } finally {
             RowSets.close(connection);
         }

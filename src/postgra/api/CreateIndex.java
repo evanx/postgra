@@ -25,17 +25,25 @@ public class CreateIndex implements PostgraHttpxHandler {
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
-        Connection connection = RowSets.getLocalPostgresConnection("template1", "postgra", "postgra");
+        JMap requestMap = httpx.parseJsonMap();
+        String database = requestMap.getString("database");
+        String user = requestMap.getString("user");
+        String password = requestMap.getString("password");
+        String index = requestMap.getString("index");
+        String sql = requestMap.getString("sql");
+        Connection connection = RowSets.getLocalPostgresConnection(database, user, password);
         try {
-            String sql = "create user " + httpx.getPathString(2);
+            sql = String.format("create index %s (%s)", index, sql);
+            logger.info("sql {}", sql);
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.execute();
-            JMap response = new JMap();
-            response.put("pathArgs", httpx.getPathArgs());
-            response.put("sql", sql);
-            return response;
+            JMap responseMap = new JMap();
+            responseMap.put("pathArgs", httpx.getPathArgs());
+            responseMap.put("sql", sql);
+            return responseMap;            
         } finally {
             RowSets.close(connection);
         }
     }
 }
+

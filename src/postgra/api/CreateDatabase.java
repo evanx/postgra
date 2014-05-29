@@ -25,10 +25,19 @@ public class CreateDatabase implements PostgraHttpxHandler {
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
+        JMap requestMap = httpx.parseJsonMap();
+        String database = requestMap.getString("database");
+        String user = requestMap.getString("user");
+        String password = requestMap.getString("password");
         Connection connection = RowSets.getLocalPostgresConnection("template1", "postgra", "postgra");
         try {
-            String sql = "create database " + httpx.getPathString(2);
+            String sql = "create database " + database;
             PreparedStatement statement = connection.prepareStatement(sql);
+            statement.execute();
+            RowSets.close(statement);
+            sql = String.format("alter database %s owner to %s", database, user);
+            logger.info("sql {}", sql);
+            statement = connection.prepareStatement(sql);
             statement.execute();
             JMap response = new JMap();
             response.put("pathArgs", httpx.getPathArgs());

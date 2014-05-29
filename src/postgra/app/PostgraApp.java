@@ -61,7 +61,7 @@ public class PostgraApp {
         logger.info("properties {}", properties);
         webServer.start(properties.getWebServer(),
                 new OpenTrustManager(),
-                new WebHttpService(this));
+                new PostgraHttpService(this));
         initThread.start();
     }
 
