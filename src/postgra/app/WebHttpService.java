@@ -13,6 +13,11 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import postgra.api.CreateDatabase;
+import postgra.api.CreateForeignKey;
+import postgra.api.CreateIndex;
+import postgra.api.CreatePrimaryKey;
+import postgra.api.CreateTable;
+import postgra.api.CreateUser;
 import vellum.exception.Exceptions;
 import vellum.httphandler.WebHttpHandler;
 import vellum.jx.JMap;
@@ -43,24 +48,41 @@ public class WebHttpService implements HttpHandler {
         try {
             app.ensureInitialized();
             if (path.equals("/api/personaLogin")) {
-                handle(new PersonaLogin(), new PostgraHttpx(app, httpExchange));
+                handle(new PersonaLogin(), httpExchange);
             } else if (path.equals("/api/personaLogout")) {
-                handle(new PersonaLogout(), new PostgraHttpx(app, httpExchange));
+                handle(new PersonaLogout(), httpExchange);
             } else if (path.startsWith("/api/")) {
-                if (path.startsWith("/api/createDatabase")) {
-                    handle(new CreateDatabase(), new PostgraHttpx(app, httpExchange));
-                } else {
-                    new ErrorHttpHandler(app).handle(httpExchange, "Service not found: " + path);
-                }
+                handle(newHandler(path), httpExchange);
             } else {
                 webHandler.handle(httpExchange);
             }
         } catch (RuntimeException e) {
             handle(httpExchange, e);
-        } catch (InterruptedException | IOException e) {
+            e.printStackTrace(System.err);
+        } catch (Exception e) {
             handle(httpExchange, e);
         } finally {
             requestCompletedCount++;
+        }
+    }
+
+    private PostgraHttpxHandler newHandler(String path) throws Exception {
+        if (path.startsWith("/api/createDatabase")) {
+            return new CreateDatabase();
+        } else if (path.startsWith("/api/createUser")) {
+            return new CreateUser();
+        } else if (path.startsWith("/api/createTable")) {
+            return new CreateTable();
+        } else if (path.startsWith("/api/creatIndex")) {
+            return new CreateIndex();
+        } else if (path.startsWith("/api/createForeignKey")) {
+            return new CreateForeignKey();
+        } else if (path.startsWith("/api/createCreatePrimaryKey")) {
+            return new CreatePrimaryKey();
+        } else if (path.startsWith("/api/createCreatePrimaryKey")) {
+            return new CreatePrimaryKey();
+        } else {
+            throw new Exception("Service not found: " + path);
         }
     }
 
@@ -68,10 +90,13 @@ public class WebHttpService implements HttpHandler {
         String path = httpExchange.getRequestURI().getPath();
         String errorMessage = Exceptions.getMessage(e);
         logger.warn("error {} {}", path, errorMessage);
-        e.printStackTrace(System.err);
         new ErrorHttpHandler(app).handle(httpExchange, errorMessage);
     }
 
+    private void handle(PostgraHttpxHandler handler, HttpExchange httpExchange) {
+        handle(handler, new PostgraHttpx(app, httpExchange));                
+    }
+    
     private void handle(PostgraHttpxHandler handler, PostgraHttpx httpx) {
         PostgraEntityService es = new PostgraEntityService(app);
         try {

@@ -18,9 +18,9 @@ import vellum.jx.JMap;
  *
  * @author evan.summers
  */
-public class CreateUser implements PostgraHttpxHandler {
+public class CreatePrimaryKey implements PostgraHttpxHandler {
     
-    private static Logger logger = LoggerFactory.getLogger(CreateUser.class); 
+    private static Logger logger = LoggerFactory.getLogger(CreatePrimaryKey.class); 
 
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {

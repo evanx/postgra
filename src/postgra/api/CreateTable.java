@@ -27,7 +27,8 @@ public class CreateTable implements PostgraHttpxHandler {
         logger.info("handle", httpx.getPathArgs());
         Connection connection = RowSets.getLocalPostgresConnection("template1", "postgra", "postgra");
         try {
-            String sql = "create database " + httpx.getPathString(2);
+            String text = httpx.readString();
+            String sql = "create table { " + httpx.getPathString(2);
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.execute();
             JMap response = new JMap();

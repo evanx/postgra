@@ -11,6 +11,11 @@ c1psqlc() {
 
 }
 
+c1createUser() {
+  c1curl createUser/$1 &&
+    psql -h localhost postgra postgra -c "\du" && 
+    psql -h localhost postgra postgra -c "drop role $1" 
+}
 c1createDatabase() {
   c1curl createDatabase/$1 &&
     psql -h localhost postgra postgra -c "\l" && 
@@ -23,7 +28,15 @@ c1dropDatabase() {
     c1psqlc "\l" 
 }  
 
+c1dropRole() {
+  c1psqlc "\du" | grep $1 &&
+    c1psqlc "drop role $1" &&
+    c1psqlc "\du" 
+}  
+
 c0default() {
+  c1dropRole test1u
+  c1createUser test1u
   c1dropDatabase test1
   c1createDatabase test1
   c1dropDatabase test1
