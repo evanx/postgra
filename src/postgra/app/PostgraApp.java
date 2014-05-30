@@ -59,6 +59,9 @@ public class PostgraApp {
         this.properties = properties;
         mailer = new Mailer(properties.getMailerProperties());
         logger.info("properties {}", properties);
+        webServer.start(properties.getWebServer(),
+                new OpenTrustManager(),
+                new PostgraHttpService(this));
         initThread.start();
     }
 
@@ -76,9 +79,6 @@ public class PostgraApp {
         emf = Persistence.createEntityManagerFactory(persistenceUnit);
         initalized = true;
         logger.info("initialized");
-        webServer.start(properties.getWebServer(),
-                new OpenTrustManager(),
-                new PostgraHttpService(this));
         messageThread.start();
         logger.info("started");
     }

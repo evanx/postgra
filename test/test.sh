@@ -40,16 +40,28 @@ c1dropDatabase() {
     c1psqlc "\l" 
 }  
 
-c0default() {
-  c2curl createDatabase "{ $databaseJson }"
-  c2curl createUser "{ $databaseJson }"
-  c2curl createTable "{ $tableJson, sql: 'id int, name text' }"
-  c2curl dropTable "{ $tableJson }"
-  c2curl dropDatabase "{ $databaseJson }"
-  c2curl dropUser "{ $userJson }"
+c0pdrop() {
   c2drop table $table
   c2drop role $user
   c2drop database $database
+}
+
+c0drop() {
+  c2curl dropTable "{ $tableJson }"
+  c2curl dropDatabase "{ $databaseJson }"
+  c2curl dropUser "{ $userJson }"
+}
+
+c0create() {
+  c2curl createDatabase "{ $databaseJson }"
+  c2curl createUser "{ $databaseJson }"
+  c2curl createTable "{ $tableJson, sql: 'id int, name text' }"
+  c2curl insert "{ $tableJson, data: {id: 1, name: 'Evan' } }"
+}
+
+c0default() {
+  c0create
+  c0drop
 }
 
 if [ $# -gt 0 ]
