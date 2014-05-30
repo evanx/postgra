@@ -18,9 +18,12 @@ import postgra.api.CreateIndex;
 import postgra.api.CreatePrimaryKey;
 import postgra.api.CreateTable;
 import postgra.api.CreateUser;
+import postgra.api.Delete;
 import postgra.api.DropDatabase;
 import postgra.api.DropTable;
 import postgra.api.DropUser;
+import postgra.api.Insert;
+import postgra.api.Update;
 import vellum.exception.Exceptions;
 import vellum.httphandler.WebHttpHandler;
 import vellum.jx.JMap;
@@ -98,6 +101,12 @@ public class PostgraHttpService implements HttpHandler {
         } else if (path.startsWith("/api/createForeignKey")) {
             return new CreateForeignKey();
         } else if (path.startsWith("/api/dropForeignKey")) {
+        } else if (path.startsWith("/api/insert")) {
+            return new Insert();
+        } else if (path.startsWith("/api/update")) {
+            return new Update();
+        } else if (path.startsWith("/api/delete")) {
+            return new Delete();
         }
         throw new Exception("Service not found: " + path);
     }

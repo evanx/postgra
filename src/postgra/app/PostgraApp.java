@@ -59,24 +59,26 @@ public class PostgraApp {
         this.properties = properties;
         mailer = new Mailer(properties.getMailerProperties());
         logger.info("properties {}", properties);
-        webServer.start(properties.getWebServer(),
-                new OpenTrustManager(),
-                new PostgraHttpService(this));
         initThread.start();
     }
 
     public void ensureInitialized() throws InterruptedException {
-        logger.info("ensureInitialized");
-        if (initThread.isAlive()) {
-            initThread.join();
+        if (!initalized) {
+            logger.info("ensureInitialized");
+            if (initThread.isAlive()) {
+                initThread.join();
+            }
+            logger.info("ensureInitialized complete");
         }
-        logger.info("ensureInitialized complete");
     }
 
     public void initDeferred() throws Exception {
         emf = Persistence.createEntityManagerFactory(persistenceUnit);
         initalized = true;
         logger.info("initialized");
+        webServer.start(properties.getWebServer(),
+                new OpenTrustManager(),
+                new PostgraHttpService(this));
         messageThread.start();
         logger.info("started");
     }
