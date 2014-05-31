@@ -51,7 +51,7 @@ public class CreateDatabase implements PostgraHttpxHandler {
             response.put("sql", sql);
             return response;
         } finally {
-            RowSets.close(connection);
+            app.close(connection);
         }
     }
 }

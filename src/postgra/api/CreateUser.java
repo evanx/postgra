@@ -43,7 +43,7 @@ public class CreateUser implements PostgraHttpxHandler {
             response.put("sql", sql);
             return response;
         } finally {
-            RowSets.close(connection);
+            app.close(connection);
         }
     }
 }

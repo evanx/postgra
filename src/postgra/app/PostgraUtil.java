@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import vellum.jx.JMap;
 
 /**
  *
@@ -18,32 +19,26 @@ public class PostgraUtil {
     
     private static Logger logger = LoggerFactory.getLogger(PostgraUtil.class); 
 
-    public static List<String> coerceString(Iterable iterable) {        
-        List<String> list = new ArrayList();
-        for (Object item : iterable) {
-            if (item == null) {
-                list.add(null);
-            } else {
-                list.add(item.toString());
+    
+    public static String formatSqlValue(Object value) {
+        if (value == null) {
+            return "null";
+        } else if (value instanceof String) {
+            return String.format("'%s'", value.toString());
+        } else {
+            return value.toString();
+        }
+    }
+    
+    public static String formatWhere(JMap data) {    
+        StringBuilder builder = new StringBuilder();
+        for (Map.Entry<String, Object> item : data.entrySet()) {
+            if (builder.length() > 0) {
+                builder.append(" AND ");
             }
+            builder.append(item.getKey());
         }
-        return list;
-    }
-    
-    public static List listKeys(Set<Map.Entry<String, Object>> entrySet) {        
-        List keyList = new ArrayList();
-        for (Map.Entry entry : entrySet) {
-            keyList.add(entry.getKey());
-        }
-        return keyList;
-    }
-    
-    public static List listValues(Set<Map.Entry<String, Object>> entrySet) {
-        List list = new ArrayList();
-        for (Map.Entry entry : entrySet) {
-            list.add(entry.getValue());
-        }
-        return list;
+        return builder.toString();        
     }
     
     public static String formatNamesCsv(Iterable<String> iterable) {
@@ -63,13 +58,7 @@ public class PostgraUtil {
             if (builder.length() > 0) {
                 builder.append(", ");
             }
-            if (item == null) {
-                builder.append("null");                
-            } else if (item instanceof String) {
-                builder.append(String.format("'%s'", item.toString()));
-            } else {
-                builder.append(item.toString());
-            }
+            builder.append(formatSqlValue(item));
         }
         return builder.toString();        
     }    

@@ -42,7 +42,7 @@ public class CreateTable implements PostgraHttpxHandler {
             responseMap.put("sql", sql);
             return responseMap;            
         } finally {
-            RowSets.close(connection);
+            app.close(connection);
         }
     }
 }

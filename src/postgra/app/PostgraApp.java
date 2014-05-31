@@ -158,5 +158,8 @@ public class PostgraApp {
     public Connection getConnection(String database, String user, String password) {
         return RowSets.getLocalPostgresConnection(database, user, password); // TODO connection pool
     }
-
+    
+    public void close(Connection connection) {
+        RowSets.close(connection);    
+    }
 }

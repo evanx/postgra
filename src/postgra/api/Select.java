@@ -35,10 +35,9 @@ public class Select implements PostgraHttpxHandler {
         Connection connection = app.getConnection(database, user, password);
         try {
             JMap dataMap = requestMap.getMap("data");
-            List<String> columnNameList = PostgraUtil.coerceString(PostgraUtil.listKeys(dataMap.entrySet()));
-            List<Object> valueList = PostgraUtil.listValues(dataMap.entrySet());
-            String sql = String.format("insert into %s (%s) values (%s)", table, 
-                    PostgraUtil.formatNamesCsv(columnNameList), PostgraUtil.formatSqlValuesCsv(valueList));
+            String sql; 
+            sql = String.format("select * from %s where %s", table, 
+                    PostgraUtil.formatWhere(dataMap));
             logger.info("sql {}", sql);
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.execute();
@@ -47,7 +46,7 @@ public class Select implements PostgraHttpxHandler {
             responseMap.put("sql", sql);
             return responseMap;            
         } finally {
-            RowSets.close(connection);
+            app.close(connection);
         }
     }
 

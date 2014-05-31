@@ -46,7 +46,7 @@ public class DropDatabase implements PostgraHttpxHandler {
             response.put("sql", sql);
             return response;
         } finally {
-            RowSets.close(connection);
+            app.close(connection);
         }
     }
 }

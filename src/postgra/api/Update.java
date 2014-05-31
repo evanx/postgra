@@ -15,6 +15,7 @@ import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
 import postgra.jdbc.RowSets;
 import vellum.jx.JMap;
+import vellum.util.Lists;
 
 /**
  *
@@ -35,8 +36,8 @@ public class Update implements PostgraHttpxHandler {
         Connection connection = app.getConnection(database, user, password);
         try {
             JMap dataMap = requestMap.getMap("data");
-            List<String> columnNameList = PostgraUtil.coerceString(PostgraUtil.listKeys(dataMap.entrySet()));
-            List<Object> valueList = PostgraUtil.listValues(dataMap.entrySet());
+            List<String> columnNameList = Lists.coerceString(Lists.listKeys(dataMap.entrySet()));
+            List<Object> valueList = Lists.listValues(dataMap.entrySet());
             String sql = String.format("insert into table (%s) values (%s)", table, 
                     PostgraUtil.formatNamesCsv(columnNameList), PostgraUtil.formatSqlValuesCsv(valueList));
             logger.info("sql {}", sql);
@@ -47,7 +48,7 @@ public class Update implements PostgraHttpxHandler {
             responseMap.put("sql", sql);
             return responseMap;            
         } finally {
-            RowSets.close(connection);
+            app.close(connection);
         }
     }
 
