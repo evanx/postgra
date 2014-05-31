@@ -48,7 +48,7 @@ public class PostgraUtil {
         StringBuilder builder = new StringBuilder();
         for (Map.Entry<String, Object> item : data.entrySet()) {
             if (builder.length() > 0) {
-                builder.append(" AND ");
+                builder.append(" and ");
             }
             builder.append(String.format("%s = %s", item.getKey(), formatSqlValue(item.getValue())));
         }

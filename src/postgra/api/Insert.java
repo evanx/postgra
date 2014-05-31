@@ -31,8 +31,8 @@ import postgra.app.PostgraApp;
 import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
-import postgra.jdbc.RowSets;
 import vellum.jx.JMap;
+import vellum.jx.JMapException;
 import vellum.util.Lists;
 
 /**
@@ -51,6 +51,8 @@ public class Insert implements PostgraHttpxHandler {
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
         JMap requestMap = httpx.parseJsonMap();
+        JMap responseMap = new JMap();
+        responseMap.put("pathArgs", httpx.getPathArgs());
         String database = requestMap.getString("database");
         String user = requestMap.getString("user");
         String password = requestMap.getString("password");
@@ -61,17 +63,15 @@ public class Insert implements PostgraHttpxHandler {
             List<String> columnNameList = Lists.coerceString(Lists.listKeys(dataMap.entrySet()));
             List<Object> valueList = Lists.listValues(dataMap.entrySet());
             sql = String.format("insert into %s (app, username, %s) values ('%s', '%s', %s)", table, 
-                    app.getProperties().getAppHost(), user,
-                    PostgraUtil.formatNamesCsv(columnNameList), PostgraUtil.formatSqlValuesCsv(valueList));
+                    PostgraUtil.formatNamesCsv(columnNameList), 
+                    app.getProperties().getAppHost(), user, PostgraUtil.formatSqlValuesCsv(valueList));
             logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
             statement.execute();
-            JMap responseMap = new JMap();
-            responseMap.put("pathArgs", httpx.getPathArgs());
             responseMap.put("sql", sql);
             return responseMap;            
         } catch (SQLException e) {
-            throw e;
+            throw new JMapException(responseMap, e.getMessage());
         } finally {
             app.getConnectionManager().close(statement, connection);
         }

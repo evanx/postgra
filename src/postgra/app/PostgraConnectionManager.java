@@ -121,7 +121,9 @@ public class PostgraConnectionManager {
             if (warning == null) {
                 close(statement, connection);
             } else {
-                throw warning;
+                logger.warn(warning.getMessage());
+                RowSets.close(statement);    
+                close(connection, false);
             }
         } catch (SQLException e) {
             logger.warn("close", e);
@@ -137,7 +139,8 @@ public class PostgraConnectionManager {
             if (warning == null) {
                 close(connection, true);
             } else {
-                throw warning;
+                logger.warn(warning.getMessage());
+                close(connection, false);
             }
         } catch (SQLException e) {
             logger.warn("close", e);
