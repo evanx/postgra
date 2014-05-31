@@ -36,8 +36,7 @@ public class Select implements PostgraHttpxHandler {
         try {
             JMap dataMap = requestMap.getMap("data");
             String sql; 
-            sql = String.format("select * from %s where %s", table, 
-                    PostgraUtil.formatWhere(dataMap));
+            sql = String.format("select * from %s where %s", table, PostgraUtil.formatWhere(dataMap));
             logger.info("sql {}", sql);
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.execute();

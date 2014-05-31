@@ -53,10 +53,11 @@ c0drop() {
 }
 
 c0create() {
-  c2curl createDatabase "{ $databaseJson }"
-  c2curl createUser "{ $databaseJson }"
-  c2curl createTable "{ $tableJson, sql: 'id int, name text' }"
-  c2curl insert "{ $tableJson, data: {id: 1, name: 'Evan' } }"
+  c2curl 'createDatabase' "{ $databaseJson }"
+  c2curl 'createUser' "{ $databaseJson }"
+  c2curl 'createTable' "{ $tableJson, sql: 'id int, name text' }"
+  c2curl 'insert' "{ $tableJson, data: { id: 1, name: 'Evan' } }"
+  c2curl 'select' "{ $tableJson, data: { name: 'Evan' } }"
 }
 
 c0default() {

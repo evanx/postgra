@@ -36,7 +36,7 @@ public class PostgraUtil {
             if (builder.length() > 0) {
                 builder.append(" AND ");
             }
-            builder.append(item.getKey());
+            builder.append(String.format("%s = %s", item.getKey(), formatSqlValue(item.getValue())));
         }
         return builder.toString();        
     }
