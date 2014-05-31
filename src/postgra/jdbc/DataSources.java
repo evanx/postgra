@@ -21,6 +21,7 @@
 package postgra.jdbc;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -29,6 +30,7 @@ import org.apache.tomcat.jdbc.pool.DataSource;
 import org.apache.tomcat.jdbc.pool.PoolProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import vellum.exception.Exceptions;
 
 /**
  *
@@ -38,6 +40,16 @@ public class DataSources {
 
     public static Logger logger = LoggerFactory.getLogger(DataSources.class);
 
+    public static Connection getLocalPostgresConnection(String database, String user, String password) {
+        String databaseUrl = String.format("jdbc:postgresql://localhost:5432/%s", database);
+        try {
+            Class.forName("org.postgresql.Driver");
+            return DriverManager.getConnection(databaseUrl, user, password);
+        } catch (ClassNotFoundException | SQLException e) {
+            throw Exceptions.newRuntimeException(e, databaseUrl, user);
+        }
+    }
+    
     public static DataSource newDataSource(String database, String username, String password) {
         DataSource dataSource = new DataSource();
         dataSource.setPoolProperties(newPoolProperties(database, username, password));
@@ -117,4 +129,13 @@ public class DataSources {
             logger.warn("close", e);
         }
     }    
+
+    public static boolean isValid(Connection connection) {
+        try {
+            connection.createStatement().execute("select 1");
+            return true;
+        } catch (SQLException e) {
+            return false;
+        }
+    }
 }

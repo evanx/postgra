@@ -1,22 +1,21 @@
 
 
-user=test1user
-database=test2
-password=$user
-table=test3table
-userJson="user: '$user', password: '$password'"
-databaseJson="database: '$database', $userJson"
-tableJson="table: '$table', $databaseJson"
+database=database1
+password=password2
+table=table3
+user=user4
+databaseJson="database: '$database', password: '$password', guest: true"
+tableJson="table: '$table', user: '$user', $databaseJson"
 
 c1curl() {
-  curl -k https://localhost:8443/api/$1 
+  curl -s -k https://localhost:8443/api/$1 | python -mjson.tool
   curlCode=$?  
   echo 
 }
 
 c2curl() {
   echo "$@"
-  curl -k https://localhost:8443/api/$1 -d "$2" 
+  curl -s -k https://localhost:8443/api/$1 -d "$2" #| python -mjson.tool
   curlCode=$?  
   echo 
 }
@@ -26,17 +25,16 @@ c1psqlc() {
 }
 
 c1terminate() {
- psql -c "select pg_terminate_backend(procpid) from pg_stat_activity where datname = '$1'"
+  psql -h localhost postgra postgra -c "select pg_terminate_backend(procpid) from pg_stat_activity where datname = '$1'"
+}
+
+c0terminate() {
+  psql -h localhost postgra postgra -c "select pg_terminate_backend(procpid) from pg_stat_activity"
 }
 
 c2drop() {
   c1psqlc "drop $1 $2"
 }  
-
-c2createDatabase() {
-  c1curl createDatabase/$1 "$2" &&
-    psql -h localhost postgra postgra -c "\l" 
-}
 
 c1dropDatabase() {
   c1psqlc "\l" | grep $1 &&
@@ -51,18 +49,16 @@ c0pdrop() {
 }
 
 c0drop() {
-  c2curl dropTable "{ $tableJson }"
-  c2curl dropDatabase "{ $databaseJson }"
-  c2curl dropUser "{ $userJson }"
+  c2curl 'admin/dropTable' "{ $tableJson }"
+  c2curl 'admin/dropDatabase' "{ $databaseJson }"
 }
 
 c0create() {
-  c2curl 'createDatabase' "{ $databaseJson }"
-  c2curl 'createUser' "{ $databaseJson }"
-  c2curl 'createTable' "{ $tableJson, sql: ' name text' }"
-  c2curl 'insert' "{ $tableJson, data: { name: 'Evan1' } }"
-  c2curl 'insert' "{ $tableJson, data: { name: 'Evan2' } }"
-  c2curl 'select' "{ $tableJson, data: { name: 'Evan2' } }"
+  c2curl 'admin/createDatabase' "{ $databaseJson }"
+  c2curl 'admin/createTable' "{ $tableJson, sql: 'name text' }"
+  c2curl 'guest/insert' "{ $tableJson, data: { name: 'Evan1' } }"
+  c2curl 'guest/insert' "{ $tableJson, data: { name: 'Evan2' } }"
+  c2curl 'guest/select' "{ $tableJson, where: { name: 'Evan2' } }"
 }
 
 c0default() {

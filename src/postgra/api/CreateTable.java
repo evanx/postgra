@@ -51,6 +51,7 @@ public class CreateTable implements PostgraHttpxHandler {
         JMap responseMap = new JMap();
         responseMap.put("pathArgs", httpx.getPathArgs());
         JMap requestMap = httpx.parseJsonMap();
+        responseMap.put("request", requestMap);
         String database = requestMap.getString("database");
         String password = requestMap.getString("password");
         String table = requestMap.getString("table");
@@ -58,7 +59,11 @@ public class CreateTable implements PostgraHttpxHandler {
         connection = app.getDataSourceManager().getDatabaseConnection(database, password);
         try {
             sql = String.format("id serial, %s", sql);
-            sql = String.format("create table %s (%s)", table, sql);
+            if (requestMap.getBoolean("guest", false)) {
+                sql = String.format("create table %s (%s, username varchar(32) not null)", table, sql);
+            } else {
+                sql = String.format("create table %s (%s)", table, sql);                
+            }
             responseMap.put("sql", sql);
             logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);

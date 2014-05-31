@@ -37,11 +37,26 @@ public class DataSourceManager {
     private static Logger logger = LoggerFactory.getLogger(DataSourceManager.class); 
     
     Map<String, DataSource> map = new HashMap();
-
+    Connection templateConnection; 
+    
     public DataSourceManager() {
     }
 
     public void init() throws Exception {
+    }
+    
+    public Connection getTemplateConnection() throws SQLException {
+        if (templateConnection == null) {
+            templateConnection = newTemplateConnection();
+        } else if (!DataSources.isValid(templateConnection)) {
+            DataSources.close(templateConnection);
+            templateConnection = newTemplateConnection();
+        }
+        return templateConnection;
+    }
+
+    public Connection newTemplateConnection() throws SQLException {
+        return DataSources.getLocalPostgresConnection("template1", "postgra", "postgra");
     }
     
     void close() {
@@ -58,10 +73,6 @@ public class DataSourceManager {
             logger.warn("close {}", dataSource);
             
         }
-    }
-
-    public Connection getTemplateConnection() throws SQLException {
-        return getDataSource("template1", "postgra", "postgra").getConnection();
     }
 
     public Connection getDatabaseConnection(String database, String password) throws SQLException {
