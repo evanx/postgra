@@ -22,14 +22,15 @@ package postgra.app;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.tomcat.jdbc.pool.PoolProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import postgra.jdbc.RowSets;
-
 
 /**
  *
@@ -37,6 +38,11 @@ import postgra.jdbc.RowSets;
  */
 public class PostgraConnectionManager {
     private static Logger logger = LoggerFactory.getLogger(PostgraConnectionManager.class); 
+    int getConnectionCount;
+    int newConnectionCount;
+    int closeConnectionCount;
+    int closeCount;
+    int removeClosedCount; 
     
     Map<String, Connection> connectionMap = new HashMap();
 
@@ -52,15 +58,21 @@ public class PostgraConnectionManager {
         }
     }
     
+    void close(String database, Connection connection) {
+        closeCount++;
+        connectionMap.remove(database);
+        RowSets.close(connection);
+    }
+    
     public void close(String database, String user, String password) {
         Connection connection = connectionMap.get(database);
         if (connection != null) {
-            connectionMap.remove(database);
-            RowSets.close(connection);
+            close(database, connection);
         }
     }
     
     public Connection getConnection(String database, String user, String password) {
+        getConnectionCount++;
         Connection connection = connectionMap.get(database); // TODO proper connection pool and auth
         if (connection == null) {
             connection = newConnection(database, user, password);
@@ -68,12 +80,13 @@ public class PostgraConnectionManager {
         } else {
             try {
                 if (connection.isClosed()) {
-                    throw new SQLException("connection close");
+                    removeClosedCount++;
+                    connectionMap.remove(database);
+                    connection = newConnection(database, user, password);
                 }
             } catch (SQLException e) {
                 logger.error("check connection", e);
-                RowSets.close(connection);
-                connectionMap.remove(database);
+                close(database, connection);
                 connection = newConnection(database, user, password);
             }
         }
@@ -81,6 +94,7 @@ public class PostgraConnectionManager {
     }    
     
     Connection newConnection(String database, String user, String password) {
+        newConnectionCount++;
         Connection connection = RowSets.getLocalPostgresConnection(database, user, password);        
         if (connectionMap.containsKey(database)) {
             logger.error("map contains key");
@@ -90,15 +104,32 @@ public class PostgraConnectionManager {
     }
     
     public void close(Connection connection) {
-        PostgraConnectionManager.this.close(connection, true);
+        close(connection, true);
     }
     
     public void close(Connection connection, boolean ok) {
+        closeConnectionCount++;
         if (!ok) {
             RowSets.close(connection);    
         }
     }   
 
+    public void close(ResultSet resultSet, PreparedStatement statement, Connection connection) {
+        try {
+            SQLWarning warning = resultSet.getWarnings();
+            RowSets.close(resultSet);
+            if (warning == null) {
+                close(statement, connection);
+            } else {
+                throw warning;
+            }
+        } catch (SQLException e) {
+            logger.warn("close", e);
+            RowSets.close(statement);    
+            close(connection, false);    
+        }
+    }
+    
     public void close(PreparedStatement statement, Connection connection) {
         try {
             SQLWarning warning = statement.getWarnings();
@@ -106,11 +137,39 @@ public class PostgraConnectionManager {
             if (warning == null) {
                 close(connection, true);
             } else {
-                logger.warn("close", warning);
-                close(connection, false);
+                throw warning;
             }
         } catch (SQLException e) {
+            logger.warn("close", e);
             close(connection, false);
         }
     }
+    
+    public PoolProperties getPoolProperties(String database, String username, String password) {
+        PoolProperties poolProperties = new PoolProperties();
+        poolProperties.setUrl(String.format("jdbc:postgresql://localhost:5432/%s", database));
+        poolProperties.setDriverClassName("org.postgresql.Driver");
+        poolProperties.setUsername(username);
+        poolProperties.setPassword(password);
+        poolProperties.setJmxEnabled(true);
+        poolProperties.setTestWhileIdle(false);
+        poolProperties.setTestOnBorrow(true);
+        poolProperties.setValidationQuery("SELECT 1");
+        poolProperties.setTestOnReturn(false);
+        poolProperties.setValidationInterval(30000);
+        poolProperties.setTimeBetweenEvictionRunsMillis(30000);
+        poolProperties.setMaxActive(100);
+        poolProperties.setInitialSize(10);
+        poolProperties.setMaxWait(10000);
+        poolProperties.setRemoveAbandonedTimeout(60);
+        poolProperties.setMinEvictableIdleTimeMillis(30000);
+        poolProperties.setMinIdle(10);
+        poolProperties.setLogAbandoned(true);
+        poolProperties.setRemoveAbandoned(true);
+        poolProperties.setJdbcInterceptors("org.apache.tomcat.jdbc.pool.interceptor.ConnectionState;"
+                + "org.apache.tomcat.jdbc.pool.interceptor.StatementFinalizer");
+        return poolProperties;
+    }
+    
+    
 }

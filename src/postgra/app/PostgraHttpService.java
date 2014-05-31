@@ -70,9 +70,7 @@ public class PostgraHttpService implements HttpHandler {
         logger.info("handle {}", path);
         Thread.currentThread().setName(path);
         try {
-            if (false) {
-                app.ensureInitialized();
-            }
+            app.ensureInitialized();
             if (path.equals("/api/personaLogin")) {
                 handle(new PersonaLogin(), httpExchange);
             } else if (path.equals("/api/personaLogout")) {

@@ -54,10 +54,10 @@ public class CreateUser implements PostgraHttpxHandler {
             String sql = String.format("create user %s login password '%s'", user, password);
             statement = connection.prepareStatement(sql);
             statement.execute();
+            RowSets.close(statement);
             sql = String.format("grant all on database %s to %s", database, user);
             statement = connection.prepareStatement(sql);
             statement.execute();
-            RowSets.close(statement);
             JMap response = new JMap();
             response.put("pathArgs", httpx.getPathArgs());
             response.put("sql", sql);

@@ -24,6 +24,7 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
+import org.apache.tomcat.jdbc.pool.PoolProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vellum.json.JsonObjectDelegate;
@@ -79,4 +80,5 @@ public class PostgraProperties extends JConsoleMap {
     public JConsoleMap getWebServer() {
         return new JConsoleMap(console, webServer);
     }       
+    
 }
