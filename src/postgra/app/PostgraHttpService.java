@@ -12,6 +12,7 @@ import postgra.web.PersonaLogout;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import postgra.api.Close;
 import postgra.api.CreateDatabase;
 import postgra.api.CreateForeignKey;
 import postgra.api.CreateIndex;
@@ -23,6 +24,7 @@ import postgra.api.DropDatabase;
 import postgra.api.DropTable;
 import postgra.api.DropUser;
 import postgra.api.Insert;
+import postgra.api.Select;
 import postgra.api.Update;
 import vellum.exception.Exceptions;
 import vellum.httphandler.WebHttpHandler;
@@ -80,7 +82,9 @@ public class PostgraHttpService implements HttpHandler {
     }
 
     private PostgraHttpxHandler newHandler(String path) throws Exception {
-        if (path.startsWith("/api/createDatabase")) {
+        if (path.startsWith("/api/close")) {
+            return new Close();
+        } else if (path.startsWith("/api/createDatabase")) {
             return new CreateDatabase();
         } else if (path.startsWith("/api/dropDatabase")) {
             return new DropDatabase();
@@ -107,6 +111,8 @@ public class PostgraHttpService implements HttpHandler {
             return new Update();
         } else if (path.startsWith("/api/delete")) {
             return new Delete();
+        } else if (path.startsWith("/api/select")) {
+            return new Select();
         }
         throw new Exception("Service not found: " + path);
     }

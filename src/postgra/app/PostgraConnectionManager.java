@@ -38,6 +38,20 @@ public class PostgraConnectionManager {
 
     public void init() throws Exception {
     }
+    
+    void close() {
+        for (Connection connection : connectionMap.values()) {
+            RowSets.close(connection);            
+        }
+    }
+    
+    public void close(String database, String user, String password) {
+        Connection connection = connectionMap.get(database);
+        if (connection != null) {
+            RowSets.close(connection);            
+        }
+    }
+    
     public Connection getConnection(String database, String user, String password) {
         Connection connection = connectionMap.get(database); // TODO proper connection pool and auth
         if (connection == null) {
@@ -48,7 +62,7 @@ public class PostgraConnectionManager {
     }    
     
     public void close(Connection connection) {
-        close(connection, true);
+        PostgraConnectionManager.this.close(connection, true);
     }
     
     public void close(Connection connection, boolean ok) {
