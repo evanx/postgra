@@ -1,7 +1,7 @@
 /*
  * Source https://github.com/evanx by @evanxsummers
  */
-package postgra.api;
+package postgra.app;
 
 import java.util.ArrayList;
 import java.util.List;
