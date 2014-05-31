@@ -20,16 +20,21 @@
  */
 package postgra.api;
 
-import postgra.app.PostgraUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import postgra.app.PostgraApp;
 import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
+import postgra.app.PostgraUtil;
+import postgra.jdbc.RowSets;
 import vellum.jx.JMap;
 
 /**
@@ -42,6 +47,8 @@ public class Select implements PostgraHttpxHandler {
 
     Connection connection;
     PreparedStatement statement;
+    ResultSetMetaData metaData;
+    List<String> columnNameList;
     
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
@@ -59,14 +66,33 @@ public class Select implements PostgraHttpxHandler {
             logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
             ResultSet resultSet = statement.executeQuery();
-            
+            List data = list(resultSet);
             JMap responseMap = new JMap();
             responseMap.put("pathArgs", httpx.getPathArgs());
             responseMap.put("sql", sql);
+            responseMap.put("data", data);
             return responseMap;            
         } finally {
             app.getConnectionManager().close(statement, connection);
         }
+    }
+
+    private List list(ResultSet resultSet) throws SQLException {
+        metaData = resultSet.getMetaData();
+        columnNameList = RowSets.getColumnNameList(metaData);
+        List<JMap> list = new ArrayList();
+        while (resultSet.next()) {
+            list.add(map(resultSet));
+        }
+        return list;
+    }
+
+    private JMap map(ResultSet resultSet) throws SQLException {
+        JMap map = new JMap();
+        for (String columnName : columnNameList) {
+            map.put(columnName, resultSet.getObject(columnName));
+        }
+        return map;
     }
 
 }
