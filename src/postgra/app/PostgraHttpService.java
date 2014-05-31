@@ -28,6 +28,10 @@ import postgra.web.PersonaLogout;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import postgra.api.AdminDelete;
+import postgra.api.AdminInsert;
+import postgra.api.AdminSelect;
+import postgra.api.AdminUpdate;
 import postgra.api.Close;
 import postgra.api.CreateDatabase;
 import postgra.api.CreateForeignKey;
@@ -35,13 +39,13 @@ import postgra.api.CreateIndex;
 import postgra.api.CreatePrimaryKey;
 import postgra.api.CreateTable;
 import postgra.api.CreateUser;
-import postgra.api.Delete;
+import postgra.api.GuestDelete;
 import postgra.api.DropDatabase;
 import postgra.api.DropTable;
 import postgra.api.DropUser;
-import postgra.api.Insert;
-import postgra.api.Select;
-import postgra.api.Update;
+import postgra.api.GuestInsert;
+import postgra.api.GuestSelect;
+import postgra.api.GuestUpdate;
 import vellum.exception.Exceptions;
 import vellum.httphandler.WebHttpHandler;
 import vellum.jx.JMap;
@@ -75,8 +79,10 @@ public class PostgraHttpService implements HttpHandler {
                 handle(new PersonaLogin(), httpExchange);
             } else if (path.equals("/api/personaLogout")) {
                 handle(new PersonaLogout(), httpExchange);
-            } else if (path.startsWith("/api/")) {
-                handle(newHandler(path), httpExchange);
+            } else if (path.startsWith("/api/admin/")) {
+                handle(newAdminHandler(path), httpExchange);
+            } else if (path.startsWith("/api/guest/")) {
+                handle(newGuestHandler(path), httpExchange);
             } else {
                 webHandler.handle(httpExchange);
             }
@@ -97,38 +103,51 @@ public class PostgraHttpService implements HttpHandler {
         new ErrorHttpHandler(app).handle(httpExchange, errorMessage);
     }
 
-    private PostgraHttpxHandler newHandler(String path) throws Exception {
-        if (path.startsWith("/api/close")) {
+    private PostgraHttpxHandler newAdminHandler(String path) throws Exception {
+        if (path.endsWith("/close")) {
             return new Close();
-        } else if (path.startsWith("/api/createDatabase")) {
+        } else if (path.endsWith("/createDatabase")) {
             return new CreateDatabase();
-        } else if (path.startsWith("/api/dropDatabase")) {
+        } else if (path.endsWith("/dropDatabase")) {
             return new DropDatabase();
-        } else if (path.startsWith("/api/createUser")) {
+        } else if (path.endsWith("/createUser")) {
             return new CreateUser();
-        } else if (path.startsWith("/api/dropUser")) {
+        } else if (path.endsWith("/dropUser")) {
             return new DropUser();
-        } else if (path.startsWith("/api/createTable")) {
+        } else if (path.endsWith("/createTable")) {
             return new CreateTable();
-        } else if (path.startsWith("/api/dropTable")) {
+        } else if (path.endsWith("/dropTable")) {
             return new DropTable();
-        } else if (path.startsWith("/api/createIndex")) {
+        } else if (path.endsWith("/createIndex")) {
             return new CreateIndex();
-        } else if (path.startsWith("/api/dropIndex")) {
-        } else if (path.startsWith("/api/createCreatePrimaryKey")) {
+        } else if (path.endsWith("/dropIndex")) {
+        } else if (path.endsWith("/createCreatePrimaryKey")) {
             return new CreatePrimaryKey();
-        } else if (path.startsWith("/api/dropCreatePrimaryKey")) {
-        } else if (path.startsWith("/api/createForeignKey")) {
+        } else if (path.endsWith("/dropCreatePrimaryKey")) {
+        } else if (path.endsWith("/createForeignKey")) {
             return new CreateForeignKey();
-        } else if (path.startsWith("/api/dropForeignKey")) {
-        } else if (path.startsWith("/api/insert")) {
-            return new Insert();
-        } else if (path.startsWith("/api/update")) {
-            return new Update();
-        } else if (path.startsWith("/api/delete")) {
-            return new Delete();
-        } else if (path.startsWith("/api/select")) {
-            return new Select();
+        } else if (path.endsWith("/dropForeignKey")) {
+        } else if (path.endsWith("/insert")) {
+            return new AdminInsert();
+        } else if (path.endsWith("/update")) {
+            return new AdminUpdate();
+        } else if (path.endsWith("/delete")) {
+            return new AdminDelete();
+        } else if (path.endsWith("/select")) {
+            return new AdminSelect();
+        }
+        throw new Exception("Service not found: " + path);
+    }
+    
+    private PostgraHttpxHandler newGuestHandler(String path) throws Exception {
+        if (path.endsWith("/insert")) {
+            return new GuestInsert();
+        } else if (path.endsWith("/update")) {
+            return new GuestUpdate();
+        } else if (path.endsWith("/delete")) {
+            return new GuestDelete();
+        } else if (path.endsWith("/select")) {
+            return new GuestSelect();
         }
         throw new Exception("Service not found: " + path);
     }

@@ -38,13 +38,13 @@ import vellum.util.Lists;
  *
  * @author evan.summers
  */
-public class Delete implements PostgraHttpxHandler {
+public class GuestUpdate implements PostgraHttpxHandler {
     
-    private static Logger logger = LoggerFactory.getLogger(Delete.class); 
+    private static Logger logger = LoggerFactory.getLogger(GuestUpdate.class); 
 
     Connection connection;
     PreparedStatement statement;
-
+    
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
@@ -53,7 +53,7 @@ public class Delete implements PostgraHttpxHandler {
         String user = requestMap.getString("user");
         String password = requestMap.getString("password");
         String table = requestMap.getString("table");
-        connection = app.getConnectionManager().getConnection(database, user, password);
+        Connection connection = app.getConnectionManager().getConnection(database, user, password);
         try {
             JMap dataMap = requestMap.getMap("data");
             List<String> columnNameList = Lists.coerceString(Lists.listKeys(dataMap.entrySet()));
@@ -61,14 +61,14 @@ public class Delete implements PostgraHttpxHandler {
             String sql = String.format("insert into table (%s) values (%s)", table, 
                     PostgraUtil.formatNamesCsv(columnNameList), PostgraUtil.formatSqlValuesCsv(valueList));
             logger.info("sql {}", sql);
-            statement = connection.prepareStatement(sql);
+            PreparedStatement statement = connection.prepareStatement(sql);
             statement.execute();
             JMap responseMap = new JMap();
             responseMap.put("pathArgs", httpx.getPathArgs());
             responseMap.put("sql", sql);
             return responseMap;            
         } finally {
-            app.getConnectionManager().close(statement, connection);
+            app.getConnectionManager().close(connection);
         }
     }
 

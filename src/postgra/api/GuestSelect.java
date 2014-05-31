@@ -42,9 +42,9 @@ import vellum.jx.JMapException;
  *
  * @author evan.summers
  */
-public class Select implements PostgraHttpxHandler {
+public class GuestSelect implements PostgraHttpxHandler {
 
-    private static Logger logger = LoggerFactory.getLogger(Select.class);
+    private static Logger logger = LoggerFactory.getLogger(GuestSelect.class);
 
     Connection connection;
     PreparedStatement statement;

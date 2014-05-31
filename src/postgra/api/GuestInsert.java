@@ -39,9 +39,9 @@ import vellum.util.Lists;
  *
  * @author evan.summers
  */
-public class Insert implements PostgraHttpxHandler {
+public class GuestInsert implements PostgraHttpxHandler {
     
-    private static Logger logger = LoggerFactory.getLogger(Insert.class); 
+    private static Logger logger = LoggerFactory.getLogger(GuestInsert.class); 
 
     Connection connection;
     PreparedStatement statement;
