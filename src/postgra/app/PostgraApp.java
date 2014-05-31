@@ -21,8 +21,6 @@
 package postgra.app;
 
 import java.sql.Connection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import javax.persistence.EntityManager;
@@ -31,7 +29,6 @@ import javax.persistence.Persistence;
 import javax.persistence.PersistenceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import postgra.jdbc.RowSets;
 import vellum.httpserver.VellumHttpsServer;
 import vellum.mail.Mailer;
 import vellum.ssl.OpenTrustManager;
@@ -54,7 +51,7 @@ public class PostgraApp {
     Thread initThread = new InitThread();
     Thread messageThread = new MessageThread(this);
     ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-    PostgraConnectionManager connectionManager = new PostgraConnectionManager();
+    DataSourceManager dataSourceManager = new DataSourceManager();
     
     public PostgraApp() {
         super();
@@ -158,7 +155,7 @@ public class PostgraApp {
         return mailer;
     }
 
-    public PostgraConnectionManager getConnectionManager() {
-        return connectionManager;
+    public DataSourceManager getDataSourceManager() {
+        return dataSourceManager;
     }        
 }

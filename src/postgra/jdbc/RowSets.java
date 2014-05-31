@@ -25,6 +25,7 @@ import vellum.exception.Exceptions;
 import java.beans.PropertyDescriptor;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -56,23 +57,39 @@ public class RowSets {
         }
     }
 
-    public static void close(Statement statement) {
-        try {
-            if (statement != null && !statement.isClosed()) {
-                statement.close();
-            }
-        } catch (SQLException e) {
-            throw Exceptions.newRuntimeException(e);
-        }
+    public static void close(ResultSet resultSet, PreparedStatement statement, Connection connection) {
+        close(resultSet);
+        close(statement);
+        close(connection);
     }
 
+    public static void close(PreparedStatement statement, Connection connection) {
+        close(statement);
+        close(connection);
+    }
+    
     public static void close(Connection connection) {
         try {
             if (connection != null && !connection.isClosed()) {
                 connection.close();
+            } else {
+                logger.warn("reclose connection");
             }
         } catch (SQLException e) {
-            throw Exceptions.newRuntimeException(e);
+            logger.warn("close", e);
+        }
+    }
+    
+    
+    public static void close(Statement statement) {
+        try {
+            if (statement != null && !statement.isClosed()) {
+                statement.close();
+            } else {
+                logger.warn("reclose statement");
+            }
+        } catch (SQLException e) {
+            logger.warn("close", e);
         }
     }
 
@@ -80,9 +97,11 @@ public class RowSets {
         try {
             if (resultSet != null && !resultSet.isClosed()) {
                 resultSet.close();
+            } else {
+                logger.warn("reclose result set");
             }
         } catch (SQLException e) {
-            throw Exceptions.newRuntimeException(e);
+            logger.warn("close", e);
         }
     }
 

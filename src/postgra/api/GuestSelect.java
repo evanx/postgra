@@ -34,6 +34,7 @@ import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
 import postgra.app.PostgraUtil;
+import postgra.jdbc.DataSources;
 import postgra.jdbc.RowSets;
 import vellum.jx.JMap;
 import vellum.jx.JMapException;
@@ -59,14 +60,11 @@ public class GuestSelect implements PostgraHttpxHandler {
         responseMap.put("pathArgs", httpx.getPathArgs());
         JMap requestMap = httpx.parseJsonMap();
         String database = requestMap.getString("database");
-        String user = requestMap.getString("user");
-        String password = requestMap.getString("password");
-        String table = requestMap.getString("table");
-        connection = app.getConnectionManager().getConnection(database, user, password);
+        connection = app.getDataSourceManager().getGuestConnection(database);
         try {
-            JMap dataMap = requestMap.getMap("data");
-            sql = String.format("select * from %s where app = '%s' and username = '%s' and %s", table,
-                    app.getProperties().getAppHost(), user, PostgraUtil.formatWhere(dataMap));
+            String table = requestMap.getString("table");
+            JMap dataMap = requestMap.getMap("where");
+            sql = String.format("select * from %s where %s", table, PostgraUtil.formatWhere(dataMap));
             responseMap.put("sql", sql);
             logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
@@ -77,7 +75,7 @@ public class GuestSelect implements PostgraHttpxHandler {
         } catch (SQLException e) {
             throw new JMapException(responseMap, e.getMessage());
         } finally {
-            app.getConnectionManager().close(statement, connection);
+            DataSources.close(connection);
         }
     }
 

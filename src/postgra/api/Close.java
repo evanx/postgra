@@ -41,14 +41,12 @@ public class Close implements PostgraHttpxHandler {
         logger.info("handle", httpx.getPathArgs());
         JMap requestMap = httpx.parseJsonMap();
         String database = requestMap.getString("database");
-        String user = requestMap.getString("user");
-        String password = requestMap.getString("password");
         try {
-            app.getConnectionManager().close(database, user, password);
+            app.getDataSourceManager().close(database);
             JMap response = new JMap();
             response.put("pathArgs", httpx.getPathArgs());
             return response;
-        } finally {
+        } finally {            
         }
     }
 }

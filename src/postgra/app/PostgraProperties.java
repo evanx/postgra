@@ -45,7 +45,6 @@ public class PostgraProperties extends JConsoleMap {
 
     JMap properties;
     JMap webServer;
-    String siteUrl;
     String appHost;
     boolean testing = false;
     Set<String> adminEmails = new HashSet();
@@ -61,7 +60,6 @@ public class PostgraProperties extends JConsoleMap {
         String jsonConfigFileName = getString("config.json", "config.json");
         JsonObjectDelegate object = new JsonObjectDelegate(new File(jsonConfigFileName));
         putAll(object.getMap());
-        siteUrl = object.getString("siteUrl");
         appHost = object.getString("appHost");
         testing = object.getBoolean("testing", testing);
         adminEmails = object.getStringSet("adminEmails");

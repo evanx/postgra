@@ -22,14 +22,17 @@ package postgra.api;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import postgra.app.PostgraApp;
 import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
+import postgra.jdbc.DataSources;
 import postgra.jdbc.RowSets;
 import vellum.jx.JMap;
+import vellum.jx.JMapException;
 
 /**
  *
@@ -45,6 +48,8 @@ public class CreateDatabase implements PostgraHttpxHandler {
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
+        JMap responseMap = new JMap();
+        responseMap.put("pathArgs", httpx.getPathArgs());
         JMap requestMap = httpx.parseJsonMap();
         String database = requestMap.getString("database");
         String password = requestMap.getString("password");
@@ -52,7 +57,7 @@ public class CreateDatabase implements PostgraHttpxHandler {
             logger.error("username not used");
         }
         String user = database;
-        connection = app.getConnectionManager().getConnection("template1", "postgra", "postgra");
+        connection = app.getDataSourceManager().getTemplateConnection();
         try {
             String sql = "create database " + database;
             statement = connection.prepareStatement(sql);
@@ -63,15 +68,15 @@ public class CreateDatabase implements PostgraHttpxHandler {
             statement.execute();
             RowSets.close(statement);
             sql = String.format("alter database %s owner to %s", database, user);
+            responseMap.put("sql", sql);
             logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
             statement.execute();
-            JMap response = new JMap();
-            response.put("pathArgs", httpx.getPathArgs());
-            response.put("sql", sql);
-            return response;
+            return responseMap;
+        } catch (SQLException e) {
+            throw new JMapException(responseMap, e.getMessage());
         } finally {
-            app.getConnectionManager().close(statement, connection);
+            DataSources.close(connection);
         }
     }
 }

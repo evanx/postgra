@@ -23,6 +23,7 @@ package postgra.api;
 import postgra.app.PostgraUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import org.slf4j.Logger;
@@ -31,6 +32,7 @@ import postgra.app.PostgraApp;
 import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
+import postgra.jdbc.DataSources;
 import vellum.jx.JMap;
 import vellum.jx.JMapException;
 import vellum.util.Lists;
@@ -57,23 +59,26 @@ public class GuestInsert implements PostgraHttpxHandler {
         String user = requestMap.getString("user");
         String password = requestMap.getString("password");
         String table = requestMap.getString("table");
-        connection = app.getConnectionManager().getConnection(database, user, password);
+        connection = app.getDataSourceManager().getGuestConnection(database);
         try {
             JMap dataMap = requestMap.getMap("data");
             List<String> columnNameList = Lists.coerceString(Lists.listKeys(dataMap.entrySet()));
             List<Object> valueList = Lists.listValues(dataMap.entrySet());
-            sql = String.format("insert into %s (app, username, %s) values ('%s', '%s', %s)", table, 
-                    PostgraUtil.formatNamesCsv(columnNameList), 
-                    app.getProperties().getAppHost(), user, PostgraUtil.formatSqlValuesCsv(valueList));
+            sql = String.format("insert into %s (username, %s) values ('%s', %s) returning id", table, 
+                    PostgraUtil.formatNamesCsv(columnNameList), user, 
+                    PostgraUtil.formatSqlValuesCsv(valueList));
+            responseMap.put("sql", sql);
             logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
-            statement.execute();
-            responseMap.put("sql", sql);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {                
+                responseMap.put("id", resultSet.getInt("id"));
+            }
             return responseMap;            
         } catch (SQLException e) {
             throw new JMapException(responseMap, e.getMessage());
         } finally {
-            app.getConnectionManager().close(statement, connection);
+            DataSources.close(connection);
         }
     }
 

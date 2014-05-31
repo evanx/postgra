@@ -23,16 +23,16 @@ package postgra.api;
 import postgra.app.PostgraUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.util.List;
+import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import postgra.app.PostgraApp;
 import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
-import postgra.jdbc.RowSets;
+import postgra.jdbc.DataSources;
 import vellum.jx.JMap;
-import vellum.util.Lists;
+import vellum.jx.JMapException;
 
 /**
  *
@@ -48,27 +48,27 @@ public class GuestUpdate implements PostgraHttpxHandler {
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
+        JMap responseMap = new JMap();
+        responseMap.put("pathArgs", httpx.getPathArgs());
         JMap requestMap = httpx.parseJsonMap();
         String database = requestMap.getString("database");
-        String user = requestMap.getString("user");
-        String password = requestMap.getString("password");
-        String table = requestMap.getString("table");
-        Connection connection = app.getConnectionManager().getConnection(database, user, password);
+        connection = app.getDataSourceManager().getGuestConnection(database);
         try {
+            String table = requestMap.getString("table");
             JMap dataMap = requestMap.getMap("data");
-            List<String> columnNameList = Lists.coerceString(Lists.listKeys(dataMap.entrySet()));
-            List<Object> valueList = Lists.listValues(dataMap.entrySet());
-            String sql = String.format("insert into table (%s) values (%s)", table, 
-                    PostgraUtil.formatNamesCsv(columnNameList), PostgraUtil.formatSqlValuesCsv(valueList));
-            logger.info("sql {}", sql);
-            PreparedStatement statement = connection.prepareStatement(sql);
-            statement.execute();
-            JMap responseMap = new JMap();
-            responseMap.put("pathArgs", httpx.getPathArgs());
+            JMap whereMap = requestMap.getMap("where");
+            String sql = String.format("update table %s set %s where %s", table, 
+                    PostgraUtil.formatUpdate(dataMap), PostgraUtil.formatWhere(whereMap));
             responseMap.put("sql", sql);
+            logger.info("sql {}", sql);
+            statement = connection.prepareStatement(sql);
+            int count = statement.executeUpdate();
+            responseMap.put("count", count);
             return responseMap;            
+        } catch (SQLException e) {
+            throw new JMapException(responseMap, e.getMessage());
         } finally {
-            app.getConnectionManager().close(connection);
+            DataSources.close(connection);
         }
     }
 

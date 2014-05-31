@@ -23,6 +23,7 @@ package postgra.api;
 import postgra.app.PostgraUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,8 +31,9 @@ import postgra.app.PostgraApp;
 import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
-import postgra.jdbc.RowSets;
+import postgra.jdbc.DataSources;
 import vellum.jx.JMap;
+import vellum.jx.JMapException;
 import vellum.util.Lists;
 
 /**
@@ -48,12 +50,13 @@ public class AdminDelete implements PostgraHttpxHandler {
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
+        JMap responseMap = new JMap();
+        responseMap.put("pathArgs", httpx.getPathArgs());
         JMap requestMap = httpx.parseJsonMap();
         String database = requestMap.getString("database");
-        String user = requestMap.getString("user");
         String password = requestMap.getString("password");
         String table = requestMap.getString("table");
-        connection = app.getConnectionManager().getConnection(database, user, password);
+        connection = app.getDataSourceManager().getDatabaseConnection(database, password);
         try {
             JMap dataMap = requestMap.getMap("data");
             List<String> columnNameList = Lists.coerceString(Lists.listKeys(dataMap.entrySet()));
@@ -63,12 +66,12 @@ public class AdminDelete implements PostgraHttpxHandler {
             logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
             statement.execute();
-            JMap responseMap = new JMap();
-            responseMap.put("pathArgs", httpx.getPathArgs());
             responseMap.put("sql", sql);
             return responseMap;            
+        } catch (SQLException e) {
+            throw new JMapException(responseMap, e.getMessage());
         } finally {
-            app.getConnectionManager().close(statement, connection);
+            DataSources.close(statement, connection);
         }
     }
 

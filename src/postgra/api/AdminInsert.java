@@ -31,6 +31,7 @@ import postgra.app.PostgraApp;
 import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
+import postgra.jdbc.DataSources;
 import vellum.jx.JMap;
 import vellum.jx.JMapException;
 import vellum.util.Lists;
@@ -50,21 +51,20 @@ public class AdminInsert implements PostgraHttpxHandler {
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
-        JMap requestMap = httpx.parseJsonMap();
         JMap responseMap = new JMap();
         responseMap.put("pathArgs", httpx.getPathArgs());
+        JMap requestMap = httpx.parseJsonMap();
         String database = requestMap.getString("database");
-        String user = requestMap.getString("user");
         String password = requestMap.getString("password");
         String table = requestMap.getString("table");
-        connection = app.getConnectionManager().getConnection(database, user, password);
+        connection = app.getDataSourceManager().getDatabaseConnection(database, password);
         try {
             JMap dataMap = requestMap.getMap("data");
             List<String> columnNameList = Lists.coerceString(Lists.listKeys(dataMap.entrySet()));
             List<Object> valueList = Lists.listValues(dataMap.entrySet());
-            sql = String.format("insert into %s (app, username, %s) values ('%s', '%s', %s)", table, 
+            sql = String.format("insert into %s (%s) values (%s)", table, 
                     PostgraUtil.formatNamesCsv(columnNameList), 
-                    app.getProperties().getAppHost(), user, PostgraUtil.formatSqlValuesCsv(valueList));
+                    PostgraUtil.formatSqlValuesCsv(valueList));
             logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
             statement.execute();
@@ -73,7 +73,7 @@ public class AdminInsert implements PostgraHttpxHandler {
         } catch (SQLException e) {
             throw new JMapException(responseMap, e.getMessage());
         } finally {
-            app.getConnectionManager().close(statement, connection);
+            DataSources.close(statement, connection);
         }
     }
 

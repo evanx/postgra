@@ -31,8 +31,7 @@ import vellum.jx.JMap;
  */
 public class PostgraUtil {
     
-    private static Logger logger = LoggerFactory.getLogger(PostgraUtil.class); 
-
+    static Logger logger = LoggerFactory.getLogger(PostgraUtil.class); 
     
     public static String formatSqlValue(Object value) {
         if (value == null) {
@@ -42,6 +41,17 @@ public class PostgraUtil {
         } else {
             return value.toString();
         }
+    }
+
+    public static String formatUpdate(JMap data) {    
+        StringBuilder builder = new StringBuilder();
+        for (Map.Entry<String, Object> item : data.entrySet()) {
+            if (builder.length() > 0) {
+                builder.append(", ");
+            }
+            builder.append(String.format("%s = %s", item.getKey(), formatSqlValue(item.getValue())));
+        }
+        return builder.toString();        
     }
     
     public static String formatWhere(JMap data) {    

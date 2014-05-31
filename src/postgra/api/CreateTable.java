@@ -29,7 +29,9 @@ import postgra.app.PostgraApp;
 import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
+import postgra.jdbc.DataSources;
 import vellum.jx.JMap;
+import vellum.jx.JMapException;
 
 /**
  *
@@ -46,28 +48,26 @@ public class CreateTable implements PostgraHttpxHandler {
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
+        JMap responseMap = new JMap();
+        responseMap.put("pathArgs", httpx.getPathArgs());
         JMap requestMap = httpx.parseJsonMap();
         String database = requestMap.getString("database");
-        String user = requestMap.getString("user");
         String password = requestMap.getString("password");
         String table = requestMap.getString("table");
         sql = requestMap.getString("sql");
-        connection = app.getConnectionManager().getConnection(database, user, password);
+        connection = app.getDataSourceManager().getDatabaseConnection(database, password);
         try {
-            sql = String.format("id serial, %s, username varchar(32) default '%s', app varchar(32) default '%s'", 
-                    sql, user, app.getProperties().getAppHost());
+            sql = String.format("id serial, %s", sql);
             sql = String.format("create table %s (%s)", table, sql);
+            responseMap.put("sql", sql);
             logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
             statement.execute();
-            JMap responseMap = new JMap();
-            responseMap.put("pathArgs", httpx.getPathArgs());
-            responseMap.put("sql", sql);
             return responseMap;            
         } catch (SQLException e) {
-            throw e;
+            throw new JMapException(responseMap, e.getMessage());
         } finally {
-            app.getConnectionManager().close(statement, connection);
+            DataSources.close(connection);
         }
     }
 }
