@@ -98,6 +98,10 @@ public class PostgraApp {
         
     }
 
+    public PostgraEntityService newEntityService() {
+        return new PostgraEntityService(this, emf);
+    }
+
     class InitThread extends Thread {
 
         @Override

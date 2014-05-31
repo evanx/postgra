@@ -37,7 +37,7 @@ public class Close implements PostgraHttpxHandler {
     private static Logger logger = LoggerFactory.getLogger(Close.class);
 
     @Override
-    public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
+    public JMap handle(PostgraApp app, PostgraHttpx httpx) throws Exception {
         logger.info("handle", httpx.getPathArgs());
         JMap response = new JMap();
         JMap requestMap = httpx.parseJsonMap();

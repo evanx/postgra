@@ -159,26 +159,21 @@ public class PostgraHttpService implements HttpHandler {
     }
 
     private void handle(PostgraHttpxHandler handler, PostgraHttpx httpx) {
-        PostgraEntityService es = new PostgraEntityService(app);
         try {
-            es.begin();
-            JMap responseMap = handler.handle(app, httpx, es);
+            JMap responseMap = handler.handle(app, httpx);
             logger.trace("response {}", responseMap);
             httpx.sendResponse(responseMap);
-            es.commit();
         } catch (RuntimeException e) {
-            handleError(httpx, es, e);
+            handleError(httpx, e);
         } catch (Exception e) {
-            handleError(httpx, es, e);
+            handleError(httpx, e);
         } finally {
-            es.close();
             httpx.close();
         }
     }
 
-    private void handleError(PostgraHttpx httpx, PostgraEntityService es, Throwable e) {
+    private void handleError(PostgraHttpx httpx, Throwable e) {
         httpx.sendError(e);
-        es.rollback();
         e.printStackTrace(System.out);
     }
 

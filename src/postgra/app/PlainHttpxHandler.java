@@ -26,6 +26,6 @@ package postgra.app;
  */
 public interface PlainHttpxHandler {
     
-    public String handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception;
+    public String handle(PostgraApp app, PostgraHttpx httpx) throws Exception;
     
 }

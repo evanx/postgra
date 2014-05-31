@@ -18,11 +18,11 @@
         specific language governing permissions and limitations
         under the License.  
  */
-package postgra.api.admin;
+package postgra.api.guest;
 
+import postgra.app.PostgraUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import postgra.app.PostgraApp;
@@ -30,7 +30,6 @@ import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
 import postgra.jdbc.DataSources;
-import postgra.jdbc.RowSets;
 import vellum.jx.JMap;
 import vellum.jx.JMapException;
 
@@ -38,32 +37,33 @@ import vellum.jx.JMapException;
  *
  * @author evan.summers
  */
-public class CreateForeignKey implements PostgraHttpxHandler {
+public class GuestRegister implements PostgraHttpxHandler {
     
-    private static Logger logger = LoggerFactory.getLogger(CreateForeignKey.class); 
+    private static Logger logger = LoggerFactory.getLogger(GuestUpdate.class); 
 
     Connection connection;
     PreparedStatement statement;
-
+    
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx) throws Exception {
         logger.info("handle", httpx.getPathArgs());
         JMap responseMap = new JMap();
         JMap requestMap = httpx.parseJsonMap();
-        String database = requestMap.getString("database");
-        String user = requestMap.getString("user");
-        String password = requestMap.getString("password");
-        String table = requestMap.getString("table");
-        String sql = requestMap.getString("sql");
-        connection = app.getDataSourceManager().getDataSource(database, user, password).getConnection();
         try {
-            sql = String.format("alter table %s (%s)", table, sql);
+            String user = app.authenticateGuest(requestMap);
+            String database = requestMap.getString("database");
+            connection = app.getDataSourceManager().getGuestConnection(database);
+            String table = requestMap.getString("table");
+            JMap whereMap = requestMap.getMap("where");
+            String sql = String.format("delete from %s where %s and username = '%s'", table, 
+                    PostgraUtil.formatWhere(whereMap), user);
             responseMap.put("sql", sql);
             logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
-            statement.execute();
+            int count = statement.executeUpdate();
+            responseMap.put("count", count);
             return responseMap;            
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new JMapException(responseMap, e.getMessage());
         } finally {
             DataSources.close(connection);

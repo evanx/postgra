@@ -50,7 +50,7 @@ public class GuestInsert implements PostgraHttpxHandler {
     String sql;
     
     @Override
-    public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
+    public JMap handle(PostgraApp app, PostgraHttpx httpx) throws Exception {
         logger.info("handle", httpx.getPathArgs());
         JMap requestMap = httpx.parseJsonMap();
         JMap responseMap = new JMap();

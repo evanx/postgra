@@ -49,7 +49,7 @@ public class AdminInsert implements PostgraHttpxHandler {
     String sql;
     
     @Override
-    public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
+    public JMap handle(PostgraApp app, PostgraHttpx httpx) throws Exception {
         logger.info("handle", httpx.getPathArgs());
         JMap responseMap = new JMap();
         JMap requestMap = httpx.parseJsonMap();
