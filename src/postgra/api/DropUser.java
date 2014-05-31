@@ -48,7 +48,6 @@ public class DropUser implements PostgraHttpxHandler {
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
         JMap responseMap = new JMap();
-        responseMap.put("pathArgs", httpx.getPathArgs());
         JMap requestMap = httpx.parseJsonMap();
         String user = requestMap.getString("user");
         connection = app.getDataSourceManager().getTemplateConnection();

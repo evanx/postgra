@@ -54,13 +54,11 @@ public class GuestInsert implements PostgraHttpxHandler {
         logger.info("handle", httpx.getPathArgs());
         JMap requestMap = httpx.parseJsonMap();
         JMap responseMap = new JMap();
-        responseMap.put("pathArgs", httpx.getPathArgs());
         String database = requestMap.getString("database");
-        String user = requestMap.getString("user");
-        String password = requestMap.getString("password");
-        String table = requestMap.getString("table");
-        connection = app.getDataSourceManager().getGuestConnection(database);
         try {
+            String user = app.authenticateGuest(requestMap);
+            String table = requestMap.getString("table");
+            connection = app.getDataSourceManager().getGuestConnection(database);
             JMap dataMap = requestMap.getMap("data");
             List<String> columnNameList = Lists.coerceString(Lists.listKeys(dataMap.entrySet()));
             List<Object> valueList = Lists.listValues(dataMap.entrySet());
@@ -75,7 +73,7 @@ public class GuestInsert implements PostgraHttpxHandler {
                 responseMap.put("id", resultSet.getInt("id"));
             }
             return responseMap;            
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new JMapException(responseMap, e.getMessage());
         } finally {
             DataSources.close(connection);

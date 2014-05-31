@@ -49,22 +49,22 @@ public class GuestDelete implements PostgraHttpxHandler {
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
         JMap responseMap = new JMap();
-        responseMap.put("pathArgs", httpx.getPathArgs());
         JMap requestMap = httpx.parseJsonMap();
-        String database = requestMap.getString("database");
-        connection = app.getDataSourceManager().getGuestConnection(database);
         try {
+            String user = app.authenticateGuest(requestMap);
+            String database = requestMap.getString("database");
+            connection = app.getDataSourceManager().getGuestConnection(database);
             String table = requestMap.getString("table");
             JMap whereMap = requestMap.getMap("where");
-            String sql = String.format("delete from %s where %s", table, 
-                    PostgraUtil.formatWhere(whereMap));
+            String sql = String.format("delete from %s where %s and username = '%s'", table, 
+                    PostgraUtil.formatWhere(whereMap), user);
             responseMap.put("sql", sql);
             logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
             int count = statement.executeUpdate();
             responseMap.put("count", count);
             return responseMap;            
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new JMapException(responseMap, e.getMessage());
         } finally {
             DataSources.close(connection);

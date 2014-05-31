@@ -15,7 +15,7 @@ c1curl() {
 
 c2curl() {
   echo "$@"
-  curl -s -k https://localhost:8443/api/$1 -d "$2" #| python -mjson.tool
+  curl -s -k https://localhost:8443/api/$1 -d "$2" | python -mjson.tool
   curlCode=$?  
   echo 
 }

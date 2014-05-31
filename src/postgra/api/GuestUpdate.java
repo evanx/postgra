@@ -49,16 +49,16 @@ public class GuestUpdate implements PostgraHttpxHandler {
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
         JMap responseMap = new JMap();
-        responseMap.put("pathArgs", httpx.getPathArgs());
         JMap requestMap = httpx.parseJsonMap();
         String database = requestMap.getString("database");
         connection = app.getDataSourceManager().getGuestConnection(database);
         try {
+            String user = app.authenticateGuest(requestMap);
             String table = requestMap.getString("table");
             JMap dataMap = requestMap.getMap("data");
             JMap whereMap = requestMap.getMap("where");
-            String sql = String.format("update table %s set %s where %s", table, 
-                    PostgraUtil.formatUpdate(dataMap), PostgraUtil.formatWhere(whereMap));
+            String sql = String.format("update table %s set %s where %s and username = '%s'", table, 
+                    PostgraUtil.formatUpdate(dataMap), PostgraUtil.formatWhere(whereMap), user);
             responseMap.put("sql", sql);
             logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);

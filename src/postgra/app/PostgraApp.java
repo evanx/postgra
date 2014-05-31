@@ -20,7 +20,7 @@
 */
 package postgra.app;
 
-import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import javax.persistence.EntityManager;
@@ -30,6 +30,8 @@ import javax.persistence.PersistenceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vellum.httpserver.VellumHttpsServer;
+import vellum.jx.JMap;
+import vellum.jx.JMapsException;
 import vellum.mail.Mailer;
 import vellum.ssl.OpenTrustManager;
 
@@ -83,6 +85,17 @@ public class PostgraApp {
         logger.info("initialized");
         messageThread.start();
         logger.info("started");
+    }
+
+    public String authenticateGuest(JMap requestMap) throws Exception {
+        String user = requestMap.getString("user");
+        String password = requestMap.getString("password");
+        if (true) {
+            throw new Exception(String.format("Authentication failed: %s", user));
+        } else {
+            return user;
+        }
+        
     }
 
     class InitThread extends Thread {

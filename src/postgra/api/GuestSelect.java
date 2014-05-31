@@ -57,14 +57,15 @@ public class GuestSelect implements PostgraHttpxHandler {
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
         JMap responseMap = new JMap();
-        responseMap.put("pathArgs", httpx.getPathArgs());
         JMap requestMap = httpx.parseJsonMap();
         String database = requestMap.getString("database");
         connection = app.getDataSourceManager().getGuestConnection(database);
         try {
+            String user = app.authenticateGuest(requestMap);
             String table = requestMap.getString("table");
             JMap dataMap = requestMap.getMap("where");
-            sql = String.format("select * from %s where %s", table, PostgraUtil.formatWhere(dataMap));
+            sql = String.format("select * from %s where %s and username = '%s'", table, 
+                    PostgraUtil.formatWhere(dataMap), user);
             responseMap.put("sql", sql);
             logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
@@ -72,7 +73,7 @@ public class GuestSelect implements PostgraHttpxHandler {
             List data = list(resultSet);
             responseMap.put("data", data);
             return responseMap;
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new JMapException(responseMap, e.getMessage());
         } finally {
             DataSources.close(connection);
