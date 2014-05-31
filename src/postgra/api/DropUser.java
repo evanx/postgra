@@ -27,7 +27,7 @@ public class DropUser implements PostgraHttpxHandler {
         logger.info("handle", httpx.getPathArgs());
         JMap requestMap = httpx.parseJsonMap();
         String user = requestMap.getString("user");
-        Connection connection = RowSets.getLocalPostgresConnection("template1", "postgra", "postgra");
+        Connection connection = app.getConnectionManager().getConnection("template1", "postgra", "postgra");
         try {
             String sql = String.format("drop user %s", user);
             PreparedStatement statement = connection.prepareStatement(sql);
@@ -37,7 +37,7 @@ public class DropUser implements PostgraHttpxHandler {
             response.put("sql", sql);
             return response;
         } finally {
-            app.close(connection);
+            app.getConnectionManager().close(connection);
         }
     }
 }

@@ -31,7 +31,7 @@ public class CreatePrimaryKey implements PostgraHttpxHandler {
         String password = requestMap.getString("password");
         String table = requestMap.getString("table");
         String sql = requestMap.getString("sql");
-        Connection connection = app.getConnection(database, user, password);
+        Connection connection = app.getConnectionManager().getConnection(database, user, password);
         try {
             sql = String.format("alter table %s (%s)", table, sql);
             logger.info("sql {}", sql);
@@ -42,7 +42,7 @@ public class CreatePrimaryKey implements PostgraHttpxHandler {
             responseMap.put("sql", sql);
             return responseMap;            
         } finally {
-            app.close(connection);
+            app.getConnectionManager().close(connection);
         }
     }
 }

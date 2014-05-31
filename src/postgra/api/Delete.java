@@ -33,7 +33,7 @@ public class Delete implements PostgraHttpxHandler {
         String user = requestMap.getString("user");
         String password = requestMap.getString("password");
         String table = requestMap.getString("table");
-        Connection connection = app.getConnection(database, user, password);
+        Connection connection = app.getConnectionManager().getConnection(database, user, password);
         try {
             JMap dataMap = requestMap.getMap("data");
             List<String> columnNameList = Lists.coerceString(Lists.listKeys(dataMap.entrySet()));
@@ -48,7 +48,7 @@ public class Delete implements PostgraHttpxHandler {
             responseMap.put("sql", sql);
             return responseMap;            
         } finally {
-            app.close(connection);
+            app.getConnectionManager().close(connection);
         }
     }
 

@@ -21,6 +21,8 @@
 package postgra.app;
 
 import java.sql.Connection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import javax.persistence.EntityManager;
@@ -52,7 +54,8 @@ public class PostgraApp {
     Thread initThread = new InitThread();
     Thread messageThread = new MessageThread(this);
     ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-
+    PostgraConnectionManager connectionManager = new PostgraConnectionManager();
+    
     public PostgraApp() {
         super();
     }
@@ -154,12 +157,8 @@ public class PostgraApp {
     public Mailer getMailer() {
         return mailer;
     }
-    
-    public Connection getConnection(String database, String user, String password) {
-        return RowSets.getLocalPostgresConnection(database, user, password); // TODO connection pool
-    }
-    
-    public void close(Connection connection) {
-        RowSets.close(connection);    
-    }
+
+    public PostgraConnectionManager getConnectionManager() {
+        return connectionManager;
+    }        
 }

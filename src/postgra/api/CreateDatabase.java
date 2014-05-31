@@ -32,7 +32,7 @@ public class CreateDatabase implements PostgraHttpxHandler {
             logger.error("username not used");
         }
         String user = database;
-        Connection connection = RowSets.getLocalPostgresConnection("template1", "postgra", "postgra");
+        Connection connection = app.getConnectionManager().getConnection("template1", "postgra", "postgra");
         try {
             String sql = "create database " + database;
             PreparedStatement statement = connection.prepareStatement(sql);
@@ -51,7 +51,7 @@ public class CreateDatabase implements PostgraHttpxHandler {
             response.put("sql", sql);
             return response;
         } finally {
-            app.close(connection);
+            app.getConnectionManager().close(connection);
         }
     }
 }

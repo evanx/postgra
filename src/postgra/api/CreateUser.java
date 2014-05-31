@@ -29,7 +29,7 @@ public class CreateUser implements PostgraHttpxHandler {
         String database = requestMap.getString("database");
         String user = requestMap.getString("user");
         String password = requestMap.getString("password");
-        Connection connection = RowSets.getLocalPostgresConnection("template1", "postgra", "postgra");
+        Connection connection = app.getConnectionManager().getConnection("template1", "postgra", "postgra");
         try {
             String sql = String.format("create user %s login password '%s'", user, password);
             PreparedStatement statement = connection.prepareStatement(sql);
@@ -43,7 +43,7 @@ public class CreateUser implements PostgraHttpxHandler {
             response.put("sql", sql);
             return response;
         } finally {
-            app.close(connection);
+            app.getConnectionManager().close(connection);
         }
     }
 }

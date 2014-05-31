@@ -32,7 +32,7 @@ public class DropDatabase implements PostgraHttpxHandler {
         }
         String user = database;
         String password = requestMap.getString("password");
-        Connection connection = RowSets.getLocalPostgresConnection("template1", "postgra", "postgra");
+        Connection connection = app.getConnectionManager().getConnection("template1", "postgra", "postgra");
         try {
             String sql = "drop database " + database;
             PreparedStatement statement = connection.prepareStatement(sql);
@@ -46,7 +46,7 @@ public class DropDatabase implements PostgraHttpxHandler {
             response.put("sql", sql);
             return response;
         } finally {
-            app.close(connection);
+            app.getConnectionManager().close(connection);
         }
     }
 }

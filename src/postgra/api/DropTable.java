@@ -30,7 +30,7 @@ public class DropTable implements PostgraHttpxHandler {
         String user = requestMap.getString("user");
         String password = requestMap.getString("password");
         String table = requestMap.getString("table");
-        Connection connection = app.getConnection(database, user, password);
+        Connection connection = app.getConnectionManager().getConnection(database, user, password);
         try {
             String sql = String.format("drop table %s", table);
             PreparedStatement statement = connection.prepareStatement(sql);
@@ -40,7 +40,7 @@ public class DropTable implements PostgraHttpxHandler {
             response.put("sql", sql);
             return response;
         } finally {
-            app.close(connection);
+            app.getConnectionManager().close(connection);
         }
     }
 }
