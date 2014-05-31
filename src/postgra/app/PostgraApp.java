@@ -20,15 +20,19 @@
 */
 package postgra.app;
 
+import java.security.GeneralSecurityException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import javax.persistence.PersistenceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import postgra.entity.Person;
 import vellum.httpserver.VellumHttpsServer;
 import vellum.jx.JMap;
+import vellum.jx.JMapsException;
 import vellum.mail.Mailer;
 import vellum.ssl.OpenTrustManager;
 
@@ -82,17 +86,6 @@ public class PostgraApp {
         logger.info("initialized");
         messageThread.start();
         logger.info("started");
-    }
-
-    public String authenticateGuest(JMap requestMap) throws Exception {
-        String user = requestMap.getString("user");
-        String password = requestMap.getString("password");
-        if (false) {
-            throw new Exception(String.format("Authentication failed: %s", user));
-        } else {
-            return user;
-        }
-        
     }
 
     class InitThread extends Thread {
@@ -165,4 +158,40 @@ public class PostgraApp {
     public DataSourceManager getDataSourceManager() {
         return dataSourceManager;
     }        
+
+    public String authenticateGuest(JMap map) throws Exception {
+        String user = map.getString("user");
+        String password = map.getString("password");
+        EntityManager em = emf.createEntityManager();
+        try {
+            Person person = em.find(Person.class, user);
+            if (person != null) {
+                if (person.matchesPassword(password.toCharArray())) {
+                    return user;
+                } else {
+                    throw new PersistenceException("Invalid password: " + user);
+                }                        
+            } else {
+                throw new PersistenceException("User not found: " + user);
+            }
+        } finally {
+            em.close();
+        }
+    }
+    
+    public boolean authenticatePersonPassword(String email, char[] password) throws Exception {
+        EntityManager em = emf.createEntityManager();
+        try {
+            Person person = em.find(Person.class, email);
+            if (person != null) {
+                return person.matchesPassword(password);
+            } else {
+                return false;
+            }
+        } finally {
+            em.close();
+        }
+    }
+
+    
 }
