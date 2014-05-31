@@ -37,7 +37,7 @@ import vellum.jx.JMapsException;
  *
  * @author evan.summers
  */
-public class GuestRegister implements PostgraHttpxHandler {
+public class GuestDeregister implements PostgraHttpxHandler {
     
     private static Logger logger = LoggerFactory.getLogger(GuestUpdate.class); 
 
@@ -52,13 +52,13 @@ public class GuestRegister implements PostgraHttpxHandler {
             String email = requestMap.getString("email");
             String password = requestMap.getString("password");
             Person person = es.findPerson(email);
-            if (person != null) {
-                throw new PersistenceException("Email already exists: " + email);
+            if (person == null) {
+                throw new PersistenceException("Email not found: " + email);
             }
-            person = new Person(email);
-            person.setRegisterTime(new Date());
-            person.setPassword(password.toCharArray());
-            es.persist(person);
+            if (!person.matchesPassword(password.toCharArray())) {
+                throw new PersistenceException("Invalid password");
+            }
+            es.remove(person);
             es.commit();
             return responseMap;
         } catch (JMapsException | PersistenceException e) {

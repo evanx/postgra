@@ -21,16 +21,19 @@
 package postgra.entity;
 
 import java.io.Serializable;
+import java.security.GeneralSecurityException;
 import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Temporal;
+import vellum.crypto.Passwords;
 import vellum.data.Emails;
 import vellum.entity.ComparableEntity;
 import vellum.jx.JMap;
 import vellum.jx.JMapsException;
 import vellum.type.Enabled;
+import vellum.util.Base64;
 
 /**
  *
@@ -45,6 +48,10 @@ public class Person extends ComparableEntity implements Enabled, Serializable {
     
     @Column()    
     String label;
+
+    @Column(name = "register_time")
+    @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+    Date registerTime;
     
     @Column(name = "login_time")
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
@@ -54,9 +61,11 @@ public class Person extends ComparableEntity implements Enabled, Serializable {
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     Date logoutTime;
 
-    @Column(name = "digest_time")
-    @Temporal(javax.persistence.TemporalType.TIMESTAMP)
-    Date digestTime;
+    @Column(name = "password_hash")
+    String passwordHash;
+
+    @Column(name = "password_salt")
+    String passwordSalt;
     
     @Column(name = "tz")
     String timeZoneId;
@@ -107,6 +116,10 @@ public class Person extends ComparableEntity implements Enabled, Serializable {
         return email;
     }
 
+    public void setRegisterTime(Date registerTime) {
+        this.registerTime = registerTime;
+    }
+    
     public void setLoginTime(Date loginTime) {
         this.loginTime = loginTime;
     }
@@ -125,6 +138,16 @@ public class Person extends ComparableEntity implements Enabled, Serializable {
 
     public String getTimeZoneId() {
         return timeZoneId;
+    }
+
+    public void setPassword(char[] password) throws GeneralSecurityException {
+        byte[] passwordSaltBytes = Passwords.generateSalt();
+        passwordHash = Base64.encode(Passwords.hashPassword(password, passwordSaltBytes));
+        passwordSalt = Base64.encode(passwordSaltBytes);
+    }
+
+    public boolean matchesPassword(char[] password) throws GeneralSecurityException {
+        return Passwords.matches(password, passwordHash, passwordHash);
     }
     
     public JMap getMap() {

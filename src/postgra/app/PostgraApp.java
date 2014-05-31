@@ -20,18 +20,15 @@
 */
 package postgra.app;
 
-import java.sql.SQLException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-import javax.persistence.PersistenceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vellum.httpserver.VellumHttpsServer;
 import vellum.jx.JMap;
-import vellum.jx.JMapsException;
 import vellum.mail.Mailer;
 import vellum.ssl.OpenTrustManager;
 
@@ -98,10 +95,6 @@ public class PostgraApp {
         
     }
 
-    public PostgraEntityService newEntityService() {
-        return new PostgraEntityService(this, emf);
-    }
-
     class InitThread extends Thread {
 
         @Override
@@ -147,23 +140,20 @@ public class PostgraApp {
         }
     }
 
-    public EntityManager createEntityManager() {
+    public EntityManager newEntityManager() {
         return emf.createEntityManager();
     }
 
-    public void persistEntity(Object entity) {
-        PostgraEntityService es = new PostgraEntityService(this);
-        try {
-            es.begin();
-            es.persist(entity);
-            es.commit();
-        } catch (PersistenceException e) {
-            logger.warn("persist {} {}", entity, e);
-        } finally {
-            es.close();
-        }
+    public PostgraEntityService newEntityService() {
+        return new PostgraEntityService(emf.createEntityManager());
     }
-
+    
+    public PostgraEntityService beginEntityService() {
+        PostgraEntityService es = newEntityService();
+        es.begin();
+        return es;
+    }
+    
     public PostgraProperties getProperties() {
         return properties;
     }

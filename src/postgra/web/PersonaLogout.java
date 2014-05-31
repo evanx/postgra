@@ -56,7 +56,7 @@ public class PersonaLogout implements PostgraHttpxHandler {
                     logger.info("testing mode: ignoring logout");
                 } else {
                     logger.info("cookie", cookie.getEmail());
-                    try (PostgraEntityService es = app.newEntityService()) {
+                    try (PostgraEntityService es = app.beginEntityService()) {
                         Person user = es.findPerson(cookie.getEmail());
                         user.setLogoutTime(new Date());
                         es.commit();

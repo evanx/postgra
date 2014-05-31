@@ -43,7 +43,11 @@ import postgra.api.guest.GuestDelete;
 import postgra.api.admin.DropDatabase;
 import postgra.api.admin.DropTable;
 import postgra.api.admin.DropUser;
+import postgra.api.guest.GuestDeregister;
 import postgra.api.guest.GuestInsert;
+import postgra.api.guest.GuestLogin;
+import postgra.api.guest.GuestLogout;
+import postgra.api.guest.GuestRegister;
 import postgra.api.guest.GuestSelect;
 import postgra.api.guest.GuestUpdate;
 import vellum.exception.Exceptions;
@@ -142,7 +146,15 @@ public class PostgraHttpService implements HttpHandler {
     }
 
     private PostgraHttpxHandler newGuestHandler(String path) throws Exception {
-        if (path.endsWith("/insert")) {
+        if (path.endsWith("/register")) {
+            return new GuestRegister();
+        } else if (path.endsWith("/deregister")) {
+            return new GuestDeregister();
+        } else if (path.endsWith("/login")) {
+            return new GuestLogin();
+        } else if (path.endsWith("/logout")) {
+            return new GuestLogout();
+        } else if (path.endsWith("/insert")) {
             return new GuestInsert();
         } else if (path.endsWith("/update")) {
             return new GuestUpdate();

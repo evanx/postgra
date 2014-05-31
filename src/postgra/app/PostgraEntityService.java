@@ -23,12 +23,9 @@ package postgra.app;
 import postgra.entity.Person;
 import java.util.List;
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import vellum.storage.StorageException;
-import vellum.storage.StorageExceptionType;
 
 /**
  *
@@ -38,28 +35,13 @@ public class PostgraEntityService implements AutoCloseable {
 
     static Logger logger = LoggerFactory.getLogger(PostgraEntityService.class);
 
-    PostgraApp app;
-    EntityManagerFactory emf;
     EntityManager em;
 
-    public PostgraEntityService(PostgraApp app) {
-        this.app = app;
-    }
-
-    public PostgraEntityService(PostgraApp app, EntityManagerFactory emf) {
-        this.app = app;
-        this.emf = emf;
+    public PostgraEntityService(EntityManager em) {
+        this.em = em;
     }
 
     public void begin() {
-        if (em != null && em.isOpen()) {
-            em.close();
-            throw new PersistenceException("entity manager is open");
-        }
-        if (emf == null) {
-            emf = app.emf;
-        }
-        em = emf.createEntityManager();
         em.getTransaction().begin();
     }
 
@@ -70,22 +52,18 @@ public class PostgraEntityService implements AutoCloseable {
     }
 
     public void rollback() {
-        if (em != null) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
-            }
+        if (em.getTransaction().isActive()) {
+            em.getTransaction().rollback();
         }
     }
 
     @Override
     public void close() {
-        if (em != null) {
+        if (em.isOpen()) {
             if (em.getTransaction().isActive()) {
                 em.getTransaction().rollback();
             }
-            if (em.isOpen()) {
-                em.close();
-            }
+            em.close();
         }
     }
 
@@ -93,19 +71,19 @@ public class PostgraEntityService implements AutoCloseable {
         em.persist(entity);
     }
 
-    public Person findPerson(String email) throws StorageException {
+    public void remove(Object entity) {
+        em.remove(entity);
+    }
+    
+    public Person findPerson(String email) {
         List<Person> list = list(email);
         if (list.isEmpty()) {
             return null;
         }
         if (list.size() > 1) {
-            throw new StorageException(StorageExceptionType.MULTIPLE_FOUND, Person.class, email);
+            throw new PersistenceException("Multiple results for email: " + email);
         }
         return list.get(0);
-    }
-
-    public void remove(Object entity) throws StorageException {
-        em.remove(entity);
     }
 
     private List<Person> list(String email) {
@@ -114,16 +92,4 @@ public class PostgraEntityService implements AutoCloseable {
                 setParameter("email", email).
                 getResultList();
     }
-
-    public Person persistPerson(String email) throws StorageException {
-        logger.info("persistPerson {}", email);
-        Person person = em.find(Person.class, email);
-        if (person == null) {
-            person = new Person(email);
-            em.persist(person);
-            logger.info("persistPerson {} {}", email, person);
-        }
-        return person;
-    }
-
 }

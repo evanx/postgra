@@ -1,9 +1,9 @@
 
-
 database=database1
 password=password2
 table=table3
-user=user4
+email=test4@test.org
+user=$email
 databaseJson="database: '$database', password: '$password', guest: true"
 tableJson="table: '$table', user: '$user', $databaseJson"
 
@@ -56,6 +56,7 @@ c0drop() {
 c0create() {
   c2curl 'admin/createDatabase' "{ $databaseJson }"
   c2curl 'admin/createTable' "{ $tableJson, sql: 'name text, type text' }"
+  c2curl 'guest/register' "{ email: '$email', password: '$password' }"
   c2curl 'guest/insert' "{ $tableJson, data: { name: 'Evan1', type: 'person'} }"
   c2curl 'guest/insert' "{ $tableJson, data: { name: 'Evan2', type: 'person' } }"
   c2curl 'guest/select' "{ $tableJson, where: { name: 'Evan2' } }"
