@@ -42,6 +42,9 @@ public class Insert implements PostgraHttpxHandler {
     
     private static Logger logger = LoggerFactory.getLogger(Insert.class); 
 
+    Connection connection;
+    PreparedStatement statement;
+
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
@@ -50,7 +53,7 @@ public class Insert implements PostgraHttpxHandler {
         String user = requestMap.getString("user");
         String password = requestMap.getString("password");
         String table = requestMap.getString("table");
-        Connection connection = app.getConnectionManager().getConnection(database, user, password);
+        connection = app.getConnectionManager().getConnection(database, user, password);
         try {
             JMap dataMap = requestMap.getMap("data");
             List<String> columnNameList = Lists.coerceString(Lists.listKeys(dataMap.entrySet()));
@@ -58,14 +61,14 @@ public class Insert implements PostgraHttpxHandler {
             String sql = String.format("insert into %s (%s) values (%s)", table, 
                     PostgraUtil.formatNamesCsv(columnNameList), PostgraUtil.formatSqlValuesCsv(valueList));
             logger.info("sql {}", sql);
-            PreparedStatement statement = connection.prepareStatement(sql);
+            statement = connection.prepareStatement(sql);
             statement.execute();
             JMap responseMap = new JMap();
             responseMap.put("pathArgs", httpx.getPathArgs());
             responseMap.put("sql", sql);
             return responseMap;            
         } finally {
-            app.getConnectionManager().close(connection);
+            app.getConnectionManager().close(statement, connection);
         }
     }
 

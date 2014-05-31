@@ -21,7 +21,9 @@
 package postgra.app;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.SQLWarning;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -96,4 +98,19 @@ public class PostgraConnectionManager {
             RowSets.close(connection);    
         }
     }   
+
+    public void close(PreparedStatement statement, Connection connection) {
+        try {
+            SQLWarning warning = statement.getWarnings();
+            RowSets.close(statement);
+            if (warning == null) {
+                close(connection, true);
+            } else {
+                logger.warn("close", warning);
+                close(connection, false);
+            }
+        } catch (SQLException e) {
+            close(connection, false);
+        }
+    }
 }

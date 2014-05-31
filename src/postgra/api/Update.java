@@ -42,6 +42,9 @@ public class Update implements PostgraHttpxHandler {
     
     private static Logger logger = LoggerFactory.getLogger(Update.class); 
 
+    Connection connection;
+    PreparedStatement statement;
+    
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());

@@ -39,6 +39,9 @@ public class CreateDatabase implements PostgraHttpxHandler {
     
     private static Logger logger = LoggerFactory.getLogger(CreateDatabase.class); 
 
+    Connection connection;
+    PreparedStatement statement;
+
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
@@ -49,10 +52,10 @@ public class CreateDatabase implements PostgraHttpxHandler {
             logger.error("username not used");
         }
         String user = database;
-        Connection connection = app.getConnectionManager().getConnection("template1", "postgra", "postgra");
+        connection = app.getConnectionManager().getConnection("template1", "postgra", "postgra");
         try {
             String sql = "create database " + database;
-            PreparedStatement statement = connection.prepareStatement(sql);
+            statement = connection.prepareStatement(sql);
             statement.execute();
             RowSets.close(statement);
             sql = String.format("create user %s login password '%s'", user, password);
@@ -68,7 +71,7 @@ public class CreateDatabase implements PostgraHttpxHandler {
             response.put("sql", sql);
             return response;
         } finally {
-            app.getConnectionManager().close(connection);
+            app.getConnectionManager().close(statement, connection);
         }
     }
 }

@@ -40,6 +40,9 @@ public class Select implements PostgraHttpxHandler {
     
     private static Logger logger = LoggerFactory.getLogger(Select.class); 
 
+    Connection connection;
+    PreparedStatement statement;
+    
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
@@ -48,13 +51,13 @@ public class Select implements PostgraHttpxHandler {
         String user = requestMap.getString("user");
         String password = requestMap.getString("password");
         String table = requestMap.getString("table");
-        Connection connection = app.getConnectionManager().getConnection(database, user, password);
+        connection = app.getConnectionManager().getConnection(database, user, password);
         try {
             JMap dataMap = requestMap.getMap("data");
             String sql; 
             sql = String.format("select * from %s where %s", table, PostgraUtil.formatWhere(dataMap));
             logger.info("sql {}", sql);
-            PreparedStatement statement = connection.prepareStatement(sql);
+            statement = connection.prepareStatement(sql);
             ResultSet resultSet = statement.executeQuery();
             
             JMap responseMap = new JMap();
@@ -62,7 +65,7 @@ public class Select implements PostgraHttpxHandler {
             responseMap.put("sql", sql);
             return responseMap;            
         } finally {
-            app.getConnectionManager().close(connection);
+            app.getConnectionManager().close(statement, connection);
         }
     }
 

@@ -39,6 +39,9 @@ public class DropTable implements PostgraHttpxHandler {
     
     private static Logger logger = LoggerFactory.getLogger(DropTable.class); 
 
+    Connection connection;
+    PreparedStatement statement;
+
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
@@ -47,17 +50,17 @@ public class DropTable implements PostgraHttpxHandler {
         String user = requestMap.getString("user");
         String password = requestMap.getString("password");
         String table = requestMap.getString("table");
-        Connection connection = app.getConnectionManager().getConnection(database, user, password);
+        connection = app.getConnectionManager().getConnection(database, user, password);
         try {
             String sql = String.format("drop table %s", table);
-            PreparedStatement statement = connection.prepareStatement(sql);
+            statement = connection.prepareStatement(sql);
             statement.execute();
             JMap response = new JMap();
             response.put("pathArgs", httpx.getPathArgs());
             response.put("sql", sql);
             return response;
         } finally {
-            app.getConnectionManager().close(connection);
+            app.getConnectionManager().close(statement, connection);
         }
     }
 }

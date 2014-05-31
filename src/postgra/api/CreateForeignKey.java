@@ -39,6 +39,9 @@ public class CreateForeignKey implements PostgraHttpxHandler {
     
     private static Logger logger = LoggerFactory.getLogger(CreateForeignKey.class); 
 
+    Connection connection;
+    PreparedStatement statement;
+
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
@@ -48,18 +51,18 @@ public class CreateForeignKey implements PostgraHttpxHandler {
         String password = requestMap.getString("password");
         String table = requestMap.getString("table");
         String sql = requestMap.getString("sql");
-        Connection connection = app.getConnectionManager().getConnection(database, user, password);
+        connection = app.getConnectionManager().getConnection(database, user, password);
         try {
             sql = String.format("alter table %s (%s)", table, sql);
             logger.info("sql {}", sql);
-            PreparedStatement statement = connection.prepareStatement(sql);
+            statement = connection.prepareStatement(sql);
             statement.execute();
             JMap responseMap = new JMap();
             responseMap.put("pathArgs", httpx.getPathArgs());
             responseMap.put("sql", sql);
             return responseMap;            
         } finally {
-            app.getConnectionManager().close(connection);
+            app.getConnectionManager().close(statement, connection);
         }
     }
 }

@@ -28,7 +28,6 @@ import postgra.app.PostgraApp;
 import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
-import postgra.jdbc.RowSets;
 import vellum.jx.JMap;
 
 /**
@@ -39,22 +38,25 @@ public class DropUser implements PostgraHttpxHandler {
     
     private static Logger logger = LoggerFactory.getLogger(DropUser.class); 
 
+    Connection connection;
+    PreparedStatement statement;
+    
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
         JMap requestMap = httpx.parseJsonMap();
         String user = requestMap.getString("user");
-        Connection connection = app.getConnectionManager().getConnection("template1", "postgra", "postgra");
+        connection = app.getConnectionManager().getConnection("template1", "postgra", "postgra");
         try {
             String sql = String.format("drop user %s", user);
-            PreparedStatement statement = connection.prepareStatement(sql);
+            statement = connection.prepareStatement(sql);
             statement.execute();
             JMap response = new JMap();
             response.put("pathArgs", httpx.getPathArgs());
             response.put("sql", sql);
             return response;
         } finally {
-            app.getConnectionManager().close(connection);
+            app.getConnectionManager().close(statement, connection);
         }
     }
 }
