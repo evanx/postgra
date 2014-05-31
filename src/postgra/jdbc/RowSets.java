@@ -58,7 +58,7 @@ public class RowSets {
 
     public static void close(Statement statement) {
         try {
-            if (statement != null) {
+            if (statement != null && !statement.isClosed()) {
                 statement.close();
             }
         } catch (SQLException e) {
