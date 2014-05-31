@@ -46,11 +46,12 @@ public class PostgraProperties extends JConsoleMap {
     JMap properties;
     JMap webServer;
     String siteUrl;
+    String appHost;
     boolean testing = false;
     Set<String> adminEmails = new HashSet();
     MailerProperties mailerProperties = new MailerProperties();
     MockableConsole console; 
-
+    
     public PostgraProperties() throws Exception {
         this(new SystemConsole(), System.getProperties());
     } 
@@ -61,12 +62,17 @@ public class PostgraProperties extends JConsoleMap {
         JsonObjectDelegate object = new JsonObjectDelegate(new File(jsonConfigFileName));
         putAll(object.getMap());
         siteUrl = object.getString("siteUrl");
+        appHost = object.getString("appHost");
         testing = object.getBoolean("testing", testing);
         adminEmails = object.getStringSet("adminEmails");
         webServer = object.getMap("webServer");
         mailerProperties.init(object.getMap("mailer"));
         mailerProperties.setLogoBytes(Streams.readBytes(getClass().getResourceAsStream("/resources/app48.png")));
         logger.info("mailer {}", mailerProperties);
+    }
+
+    public String getAppHost() {
+        return appHost;
     }
 
     public boolean isTesting() {

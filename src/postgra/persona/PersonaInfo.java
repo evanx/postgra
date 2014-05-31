@@ -23,7 +23,7 @@ package postgra.persona;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vellum.jx.JMap;
-import vellum.jx.JMapException;
+import vellum.jx.JMapsException;
 import vellum.util.Args;
 
 /**
@@ -40,7 +40,7 @@ public class PersonaInfo {
         this.email = email;
     }
     
-    public PersonaInfo(JMap map) throws JMapException {
+    public PersonaInfo(JMap map) throws JMapsException {
         email = map.getString("email");
         expires = map.getLong("expires");
         issuer = map.getString("issuer");

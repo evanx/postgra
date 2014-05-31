@@ -29,7 +29,7 @@ import java.util.TimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vellum.httpserver.Httpx;
-import vellum.jx.JMapException;
+import vellum.jx.JMapsException;
 
 /**
  *
@@ -47,7 +47,7 @@ public class PostgraHttpx extends Httpx {
         this.app = app;
     }
 
-    public PostgraCookie getCookie() throws JMapException {
+    public PostgraCookie getCookie() throws JMapsException {
         if (cookie == null) {
             if (PostgraCookie.matches(getCookieMap())) {
                 cookie = new PostgraCookie(getCookieMap());
@@ -59,7 +59,7 @@ public class PostgraHttpx extends Httpx {
         return cookie;
     }
 
-    public String getEmail() throws JMapException, IOException, PersonaException {
+    public String getEmail() throws JMapsException, IOException, PersonaException {
         if (getCookie() != null) {
             if (cookie.getEmail() != null) {
                 if (app.properties.isTesting()) {
@@ -79,7 +79,7 @@ public class PostgraHttpx extends Httpx {
         throw new PersonaException("no verified email");
     }
 
-    public TimeZone getTimeZone() throws JMapException {
+    public TimeZone getTimeZone() throws JMapsException {
         if (getCookie() != null) {
             return getTimeZone(cookie.getTimeZoneOffset());
         }

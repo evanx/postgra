@@ -22,13 +22,13 @@ package postgra.api;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import postgra.app.PostgraApp;
 import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
-import postgra.jdbc.RowSets;
 import vellum.jx.JMap;
 
 /**
@@ -41,6 +41,7 @@ public class CreateTable implements PostgraHttpxHandler {
 
     Connection connection;
     PreparedStatement statement;
+    String sql;
 
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
@@ -50,9 +51,11 @@ public class CreateTable implements PostgraHttpxHandler {
         String user = requestMap.getString("user");
         String password = requestMap.getString("password");
         String table = requestMap.getString("table");
-        String sql = requestMap.getString("sql");
+        sql = requestMap.getString("sql");
         connection = app.getConnectionManager().getConnection(database, user, password);
         try {
+            sql = String.format("id serial, %s, username varchar(32) default '%s', app varchar(32) default '%s'", 
+                    sql, user, app.getProperties().getAppHost());
             sql = String.format("create table %s (%s)", table, sql);
             logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
@@ -61,6 +64,8 @@ public class CreateTable implements PostgraHttpxHandler {
             responseMap.put("pathArgs", httpx.getPathArgs());
             responseMap.put("sql", sql);
             return responseMap;            
+        } catch (SQLException e) {
+            throw e;
         } finally {
             app.getConnectionManager().close(statement, connection);
         }

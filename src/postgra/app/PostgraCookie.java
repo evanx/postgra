@@ -27,7 +27,7 @@ import org.apache.commons.codec.binary.Base32;
 import vellum.data.Maps;
 import vellum.data.Millis;
 import vellum.jx.JMap;
-import vellum.jx.JMapException;
+import vellum.jx.JMapsException;
 import vellum.util.Bytes;
 
 /**
@@ -47,7 +47,7 @@ public class PostgraCookie {
     public PostgraCookie() {
     }
 
-    public PostgraCookie(JMap map) throws JMapException {
+    public PostgraCookie(JMap map) throws JMapsException {
         if (matches(map)) {
             this.email = map.getString("email");
             this.label = map.getString("label");
