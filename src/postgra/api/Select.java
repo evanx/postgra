@@ -31,7 +31,7 @@ public class Select implements PostgraHttpxHandler {
         String user = requestMap.getString("user");
         String password = requestMap.getString("password");
         String table = requestMap.getString("table");
-        Connection connection = RowSets.getLocalPostgresConnection(database, user, password);
+        Connection connection = app.getConnection(database, user, password);
         try {
             JMap dataMap = requestMap.getMap("data");
             List<String> columnNameList = PostgraUtil.coerceString(PostgraUtil.listKeys(dataMap.entrySet()));

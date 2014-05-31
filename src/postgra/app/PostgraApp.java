@@ -20,6 +20,7 @@
  */
 package postgra.app;
 
+import java.sql.Connection;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import javax.persistence.EntityManager;
@@ -28,6 +29,7 @@ import javax.persistence.Persistence;
 import javax.persistence.PersistenceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import postgra.jdbc.RowSets;
 import vellum.httpserver.VellumHttpsServer;
 import vellum.mail.Mailer;
 import vellum.ssl.OpenTrustManager;
@@ -151,6 +153,10 @@ public class PostgraApp {
 
     public Mailer getMailer() {
         return mailer;
+    }
+    
+    public Connection getConnection(String database, String user, String password) {
+        return RowSets.getLocalPostgresConnection(database, user, password); // TODO connection pool
     }
 
 }

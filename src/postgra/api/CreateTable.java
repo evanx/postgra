@@ -31,7 +31,7 @@ public class CreateTable implements PostgraHttpxHandler {
         String password = requestMap.getString("password");
         String table = requestMap.getString("table");
         String sql = requestMap.getString("sql");
-        Connection connection = RowSets.getLocalPostgresConnection(database, user, password);
+        Connection connection = app.getConnection(database, user, password);
         try {
             sql = String.format("create table %s (%s)", table, sql);
             logger.info("sql {}", sql);

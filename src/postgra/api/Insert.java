@@ -5,11 +5,7 @@ package postgra.api;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import static javax.persistence.TemporalType.values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import postgra.app.PostgraApp;
@@ -17,7 +13,6 @@ import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
 import postgra.jdbc.RowSets;
-import vellum.format.ListFormats;
 import vellum.jx.JMap;
 
 /**
@@ -36,7 +31,7 @@ public class Insert implements PostgraHttpxHandler {
         String user = requestMap.getString("user");
         String password = requestMap.getString("password");
         String table = requestMap.getString("table");
-        Connection connection = RowSets.getLocalPostgresConnection(database, user, password);
+        Connection connection = app.getConnection(database, user, password);
         try {
             JMap dataMap = requestMap.getMap("data");
             List<String> columnNameList = PostgraUtil.coerceString(PostgraUtil.listKeys(dataMap.entrySet()));

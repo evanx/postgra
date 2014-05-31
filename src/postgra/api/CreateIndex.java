@@ -31,7 +31,7 @@ public class CreateIndex implements PostgraHttpxHandler {
         String password = requestMap.getString("password");
         String index = requestMap.getString("index");
         String sql = requestMap.getString("sql");
-        Connection connection = RowSets.getLocalPostgresConnection(database, user, password);
+        Connection connection = app.getConnection(database, user, password);
         try {
             sql = String.format("create index %s (%s)", index, sql);
             logger.info("sql {}", sql);
