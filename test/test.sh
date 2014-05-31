@@ -25,6 +25,10 @@ c1psqlc() {
   psql -h localhost postgra postgra -c "$1" 
 }
 
+c1terminate() {
+ psql -c "select pg_terminate_backend(procpid) from pg_stat_activity where datname = '$1'"
+}
+
 c2drop() {
   c1psqlc "drop $1 $2"
 }  
