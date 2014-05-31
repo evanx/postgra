@@ -18,7 +18,7 @@
         specific language governing permissions and limitations
         under the License.  
  */
-package postgra.api;
+package postgra.api.admin;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -37,37 +37,26 @@ import vellum.jx.JMapException;
  *
  * @author evan.summers
  */
-public class CreateTable implements PostgraHttpxHandler {
+public class DropUser implements PostgraHttpxHandler {
     
-    private static Logger logger = LoggerFactory.getLogger(CreateTable.class); 
+    private static Logger logger = LoggerFactory.getLogger(DropUser.class); 
 
     Connection connection;
     PreparedStatement statement;
-    String sql;
-
+    
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
         JMap responseMap = new JMap();
         JMap requestMap = httpx.parseJsonMap();
-        responseMap.put("request", requestMap);
-        String database = requestMap.getString("database");
-        String password = requestMap.getString("password");
-        String table = requestMap.getString("table");
-        sql = requestMap.getString("sql");
-        connection = app.getDataSourceManager().getDatabaseConnection(database, password);
+        String user = requestMap.getString("user");
+        connection = app.getDataSourceManager().getTemplateConnection();
         try {
-            sql = String.format("id serial, %s", sql);
-            if (requestMap.getBoolean("guest", false)) {
-                sql = String.format("create table %s (%s, username varchar(32) not null)", table, sql);
-            } else {
-                sql = String.format("create table %s (%s)", table, sql);                
-            }
+            String sql = String.format("drop user %s", user);
             responseMap.put("sql", sql);
-            logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
             statement.execute();
-            return responseMap;            
+            return responseMap;
         } catch (SQLException e) {
             throw new JMapException(responseMap, e.getMessage());
         } finally {

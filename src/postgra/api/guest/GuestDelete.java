@@ -18,7 +18,7 @@
         specific language governing permissions and limitations
         under the License.  
  */
-package postgra.api;
+package postgra.api.guest;
 
 import postgra.app.PostgraUtil;
 import java.sql.Connection;
@@ -38,7 +38,7 @@ import vellum.jx.JMapException;
  *
  * @author evan.summers
  */
-public class GuestUpdate implements PostgraHttpxHandler {
+public class GuestDelete implements PostgraHttpxHandler {
     
     private static Logger logger = LoggerFactory.getLogger(GuestUpdate.class); 
 
@@ -50,26 +50,24 @@ public class GuestUpdate implements PostgraHttpxHandler {
         logger.info("handle", httpx.getPathArgs());
         JMap responseMap = new JMap();
         JMap requestMap = httpx.parseJsonMap();
-        String database = requestMap.getString("database");
-        connection = app.getDataSourceManager().getGuestConnection(database);
         try {
             String user = app.authenticateGuest(requestMap);
+            String database = requestMap.getString("database");
+            connection = app.getDataSourceManager().getGuestConnection(database);
             String table = requestMap.getString("table");
-            JMap dataMap = requestMap.getMap("data");
             JMap whereMap = requestMap.getMap("where");
-            String sql = String.format("update table %s set %s where %s and username = '%s'", table, 
-                    PostgraUtil.formatUpdate(dataMap), PostgraUtil.formatWhere(whereMap), user);
+            String sql = String.format("delete from %s where %s and username = '%s'", table, 
+                    PostgraUtil.formatWhere(whereMap), user);
             responseMap.put("sql", sql);
             logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
             int count = statement.executeUpdate();
             responseMap.put("count", count);
             return responseMap;            
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new JMapException(responseMap, e.getMessage());
         } finally {
             DataSources.close(connection);
         }
     }
-
 }

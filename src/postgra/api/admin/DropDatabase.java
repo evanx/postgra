@@ -18,14 +18,11 @@
         specific language governing permissions and limitations
         under the License.  
  */
-package postgra.api;
+package postgra.api.admin;
 
-import postgra.app.PostgraUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import postgra.app.PostgraApp;
@@ -33,51 +30,43 @@ import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
 import postgra.jdbc.DataSources;
+import postgra.jdbc.RowSets;
 import vellum.jx.JMap;
 import vellum.jx.JMapException;
-import vellum.util.Lists;
 
 /**
  *
  * @author evan.summers
  */
-public class GuestInsert implements PostgraHttpxHandler {
+public class DropDatabase implements PostgraHttpxHandler {
     
-    private static Logger logger = LoggerFactory.getLogger(GuestInsert.class); 
+    private static Logger logger = LoggerFactory.getLogger(DropDatabase.class); 
 
     Connection connection;
     PreparedStatement statement;
-    String sql;
-    
+
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
-        JMap requestMap = httpx.parseJsonMap();
         JMap responseMap = new JMap();
+        JMap requestMap = httpx.parseJsonMap();
         String database = requestMap.getString("database");
+        app.getDataSourceManager().close(database);
+        connection = app.getDataSourceManager().getTemplateConnection();
         try {
-            String user = app.authenticateGuest(requestMap);
-            String table = requestMap.getString("table");
-            connection = app.getDataSourceManager().getGuestConnection(database);
-            JMap dataMap = requestMap.getMap("data");
-            List<String> columnNameList = Lists.coerceString(Lists.listKeys(dataMap.entrySet()));
-            List<Object> valueList = Lists.listValues(dataMap.entrySet());
-            sql = String.format("insert into %s (username, %s) values ('%s', %s) returning id", table, 
-                    PostgraUtil.formatNamesCsv(columnNameList), user, 
-                    PostgraUtil.formatSqlValuesCsv(valueList));
+            String sql = "drop database " + database;
             responseMap.put("sql", sql);
-            logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {                
-                responseMap.put("id", resultSet.getInt("id"));
-            }
-            return responseMap;            
-        } catch (Exception e) {
+            statement.execute();
+            RowSets.close(statement);
+            sql = String.format("drop user %s", database);
+            statement = connection.prepareStatement(sql);
+            statement.execute();
+            return responseMap;
+        } catch (SQLException e) {
             throw new JMapException(responseMap, e.getMessage());
         } finally {
             DataSources.close(connection);
         }
     }
-
 }

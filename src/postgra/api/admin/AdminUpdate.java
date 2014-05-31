@@ -18,7 +18,7 @@
         specific language governing permissions and limitations
         under the License.  
  */
-package postgra.api;
+package postgra.api.admin;
 
 import postgra.app.PostgraUtil;
 import java.sql.Connection;
@@ -40,13 +40,13 @@ import vellum.util.Lists;
  *
  * @author evan.summers
  */
-public class AdminDelete implements PostgraHttpxHandler {
+public class AdminUpdate implements PostgraHttpxHandler {
     
-    private static Logger logger = LoggerFactory.getLogger(AdminDelete.class); 
+    private static Logger logger = LoggerFactory.getLogger(AdminUpdate.class); 
 
     Connection connection;
     PreparedStatement statement;
-
+    
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
@@ -62,10 +62,10 @@ public class AdminDelete implements PostgraHttpxHandler {
             List<Object> valueList = Lists.listValues(dataMap.entrySet());
             String sql = String.format("insert into table (%s) values (%s)", table, 
                     PostgraUtil.formatNamesCsv(columnNameList), PostgraUtil.formatSqlValuesCsv(valueList));
+            responseMap.put("sql", sql);
             logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
             statement.execute();
-            responseMap.put("sql", sql);
             return responseMap;            
         } catch (SQLException e) {
             throw new JMapException(responseMap, e.getMessage());

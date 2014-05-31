@@ -18,11 +18,11 @@
         specific language governing permissions and limitations
         under the License.  
  */
-package postgra.api;
+package postgra.api.guest;
 
+import postgra.app.PostgraUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import postgra.app.PostgraApp;
@@ -37,32 +37,38 @@ import vellum.jx.JMapException;
  *
  * @author evan.summers
  */
-public class DropTable implements PostgraHttpxHandler {
+public class GuestUpdate implements PostgraHttpxHandler {
     
-    private static Logger logger = LoggerFactory.getLogger(DropTable.class); 
+    private static Logger logger = LoggerFactory.getLogger(GuestUpdate.class); 
 
     Connection connection;
     PreparedStatement statement;
-
+    
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
         JMap responseMap = new JMap();
         JMap requestMap = httpx.parseJsonMap();
         String database = requestMap.getString("database");
-        String password = requestMap.getString("password");
-        connection = app.getDataSourceManager().getDatabaseConnection(database, password);
+        connection = app.getDataSourceManager().getGuestConnection(database);
         try {
+            String user = app.authenticateGuest(requestMap);
             String table = requestMap.getString("table");
-            String sql = String.format("drop table %s", table);
+            JMap dataMap = requestMap.getMap("data");
+            JMap whereMap = requestMap.getMap("where");
+            String sql = String.format("update %s set %s where %s and username = '%s'", table, 
+                    PostgraUtil.formatUpdate(dataMap), PostgraUtil.formatWhere(whereMap), user);
             responseMap.put("sql", sql);
+            logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
-            statement.execute();
-            return responseMap;
-        } catch (SQLException e) {
+            int count = statement.executeUpdate();
+            responseMap.put("count", count);
+            return responseMap;            
+        } catch (Exception e) {
             throw new JMapException(responseMap, e.getMessage());
         } finally {
             DataSources.close(connection);
         }
     }
+
 }

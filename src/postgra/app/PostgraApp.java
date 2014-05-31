@@ -90,7 +90,7 @@ public class PostgraApp {
     public String authenticateGuest(JMap requestMap) throws Exception {
         String user = requestMap.getString("user");
         String password = requestMap.getString("password");
-        if (true) {
+        if (false) {
             throw new Exception(String.format("Authentication failed: %s", user));
         } else {
             return user;

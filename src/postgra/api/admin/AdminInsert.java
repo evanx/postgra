@@ -18,11 +18,13 @@
         specific language governing permissions and limitations
         under the License.  
  */
-package postgra.api;
+package postgra.api.admin;
 
+import postgra.app.PostgraUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import postgra.app.PostgraApp;
@@ -30,21 +32,22 @@ import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
 import postgra.jdbc.DataSources;
-import postgra.jdbc.RowSets;
 import vellum.jx.JMap;
 import vellum.jx.JMapException;
+import vellum.util.Lists;
 
 /**
  *
  * @author evan.summers
  */
-public class CreateDatabase implements PostgraHttpxHandler {
+public class AdminInsert implements PostgraHttpxHandler {
     
-    private static Logger logger = LoggerFactory.getLogger(CreateDatabase.class); 
+    private static Logger logger = LoggerFactory.getLogger(AdminInsert.class); 
 
     Connection connection;
     PreparedStatement statement;
-
+    String sql;
+    
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
@@ -52,30 +55,25 @@ public class CreateDatabase implements PostgraHttpxHandler {
         JMap requestMap = httpx.parseJsonMap();
         String database = requestMap.getString("database");
         String password = requestMap.getString("password");
-        if (requestMap.containsKey("username")) {
-            logger.error("username not used");
-        }
-        String user = database;
-        connection = app.getDataSourceManager().getTemplateConnection();
+        String table = requestMap.getString("table");
+        connection = app.getDataSourceManager().getDatabaseConnection(database, password);
         try {
-            String sql = "create database " + database;
-            statement = connection.prepareStatement(sql);
-            statement.execute();
-            RowSets.close(statement);
-            sql = String.format("create user %s login password '%s'", user, password);
-            statement = connection.prepareStatement(sql);
-            statement.execute();
-            RowSets.close(statement);
-            sql = String.format("alter database %s owner to %s", database, user);
-            responseMap.put("sql", sql);
+            JMap dataMap = requestMap.getMap("data");
+            List<String> columnNameList = Lists.coerceString(Lists.listKeys(dataMap.entrySet()));
+            List<Object> valueList = Lists.listValues(dataMap.entrySet());
+            sql = String.format("insert into %s (%s) values (%s)", table, 
+                    PostgraUtil.formatNamesCsv(columnNameList), 
+                    PostgraUtil.formatSqlValuesCsv(valueList));
             logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
             statement.execute();
-            return responseMap;
+            responseMap.put("sql", sql);
+            return responseMap;            
         } catch (SQLException e) {
             throw new JMapException(responseMap, e.getMessage());
         } finally {
-            DataSources.close(connection);
+            DataSources.close(statement, connection);
         }
     }
+
 }

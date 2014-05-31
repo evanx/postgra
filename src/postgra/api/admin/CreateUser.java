@@ -18,7 +18,7 @@
         specific language governing permissions and limitations
         under the License.  
  */
-package postgra.api;
+package postgra.api.admin;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

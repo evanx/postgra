@@ -18,7 +18,7 @@
         specific language governing permissions and limitations
         under the License.  
  */
-package postgra.api;
+package postgra.api.admin;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -38,9 +38,9 @@ import vellum.jx.JMapException;
  *
  * @author evan.summers
  */
-public class DropDatabase implements PostgraHttpxHandler {
+public class CreateForeignKey implements PostgraHttpxHandler {
     
-    private static Logger logger = LoggerFactory.getLogger(DropDatabase.class); 
+    private static Logger logger = LoggerFactory.getLogger(CreateForeignKey.class); 
 
     Connection connection;
     PreparedStatement statement;
@@ -51,18 +51,18 @@ public class DropDatabase implements PostgraHttpxHandler {
         JMap responseMap = new JMap();
         JMap requestMap = httpx.parseJsonMap();
         String database = requestMap.getString("database");
-        app.getDataSourceManager().close(database);
-        connection = app.getDataSourceManager().getTemplateConnection();
+        String user = requestMap.getString("user");
+        String password = requestMap.getString("password");
+        String table = requestMap.getString("table");
+        String sql = requestMap.getString("sql");
+        connection = app.getDataSourceManager().getDataSource(database, user, password).getConnection();
         try {
-            String sql = "drop database " + database;
+            sql = String.format("alter table %s (%s)", table, sql);
             responseMap.put("sql", sql);
+            logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
             statement.execute();
-            RowSets.close(statement);
-            sql = String.format("drop user %s", database);
-            statement = connection.prepareStatement(sql);
-            statement.execute();
-            return responseMap;
+            return responseMap;            
         } catch (SQLException e) {
             throw new JMapException(responseMap, e.getMessage());
         } finally {

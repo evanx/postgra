@@ -18,7 +18,7 @@
  specific language governing permissions and limitations
  under the License.  
  */
-package postgra.api;
+package postgra.api.admin;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -43,9 +43,9 @@ import vellum.jx.JMapException;
  *
  * @author evan.summers
  */
-public class GuestSelect implements PostgraHttpxHandler {
+public class AdminSelect implements PostgraHttpxHandler {
 
-    private static Logger logger = LoggerFactory.getLogger(GuestSelect.class);
+    private static Logger logger = LoggerFactory.getLogger(AdminSelect.class);
 
     Connection connection;
     PreparedStatement statement;
@@ -59,13 +59,12 @@ public class GuestSelect implements PostgraHttpxHandler {
         JMap responseMap = new JMap();
         JMap requestMap = httpx.parseJsonMap();
         String database = requestMap.getString("database");
-        connection = app.getDataSourceManager().getGuestConnection(database);
+        String password = requestMap.getString("password");
+        String table = requestMap.getString("table");
+        connection = app.getDataSourceManager().getDatabaseConnection(database, password);
         try {
-            String user = app.authenticateGuest(requestMap);
-            String table = requestMap.getString("table");
-            JMap dataMap = requestMap.getMap("where");
-            sql = String.format("select * from %s where %s and username = '%s'", table, 
-                    PostgraUtil.formatWhere(dataMap), user);
+            JMap dataMap = requestMap.getMap("data");
+            sql = String.format("select * from %s where %s", table, PostgraUtil.formatWhere(dataMap));
             responseMap.put("sql", sql);
             logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
@@ -73,10 +72,10 @@ public class GuestSelect implements PostgraHttpxHandler {
             List data = list(resultSet);
             responseMap.put("data", data);
             return responseMap;
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw new JMapException(responseMap, e.getMessage());
         } finally {
-            DataSources.close(connection);
+            DataSources.close(statement, connection);
         }
     }
 

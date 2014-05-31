@@ -18,13 +18,11 @@
         specific language governing permissions and limitations
         under the License.  
  */
-package postgra.api;
+package postgra.api.admin;
 
-import postgra.app.PostgraUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import postgra.app.PostgraApp;
@@ -34,34 +32,37 @@ import postgra.app.PostgraHttpxHandler;
 import postgra.jdbc.DataSources;
 import vellum.jx.JMap;
 import vellum.jx.JMapException;
-import vellum.util.Lists;
 
 /**
  *
  * @author evan.summers
  */
-public class AdminUpdate implements PostgraHttpxHandler {
+public class CreateTable implements PostgraHttpxHandler {
     
-    private static Logger logger = LoggerFactory.getLogger(AdminUpdate.class); 
+    private static Logger logger = LoggerFactory.getLogger(CreateTable.class); 
 
     Connection connection;
     PreparedStatement statement;
-    
+    String sql;
+
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
         JMap responseMap = new JMap();
         JMap requestMap = httpx.parseJsonMap();
+        responseMap.put("request", requestMap);
         String database = requestMap.getString("database");
         String password = requestMap.getString("password");
         String table = requestMap.getString("table");
+        sql = requestMap.getString("sql");
         connection = app.getDataSourceManager().getDatabaseConnection(database, password);
         try {
-            JMap dataMap = requestMap.getMap("data");
-            List<String> columnNameList = Lists.coerceString(Lists.listKeys(dataMap.entrySet()));
-            List<Object> valueList = Lists.listValues(dataMap.entrySet());
-            String sql = String.format("insert into table (%s) values (%s)", table, 
-                    PostgraUtil.formatNamesCsv(columnNameList), PostgraUtil.formatSqlValuesCsv(valueList));
+            sql = String.format("id serial, %s", sql);
+            if (requestMap.getBoolean("guest", false)) {
+                sql = String.format("create table %s (%s, username varchar(32) not null)", table, sql);
+            } else {
+                sql = String.format("create table %s (%s)", table, sql);                
+            }
             responseMap.put("sql", sql);
             logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
@@ -70,8 +71,7 @@ public class AdminUpdate implements PostgraHttpxHandler {
         } catch (SQLException e) {
             throw new JMapException(responseMap, e.getMessage());
         } finally {
-            DataSources.close(statement, connection);
+            DataSources.close(connection);
         }
     }
-
 }

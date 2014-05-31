@@ -18,7 +18,7 @@
         specific language governing permissions and limitations
         under the License.  
  */
-package postgra.api;
+package postgra.api.admin;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -37,22 +37,24 @@ import vellum.jx.JMapException;
  *
  * @author evan.summers
  */
-public class DropUser implements PostgraHttpxHandler {
+public class DropTable implements PostgraHttpxHandler {
     
-    private static Logger logger = LoggerFactory.getLogger(DropUser.class); 
+    private static Logger logger = LoggerFactory.getLogger(DropTable.class); 
 
     Connection connection;
     PreparedStatement statement;
-    
+
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
         JMap responseMap = new JMap();
         JMap requestMap = httpx.parseJsonMap();
-        String user = requestMap.getString("user");
-        connection = app.getDataSourceManager().getTemplateConnection();
+        String database = requestMap.getString("database");
+        String password = requestMap.getString("password");
+        connection = app.getDataSourceManager().getDatabaseConnection(database, password);
         try {
-            String sql = String.format("drop user %s", user);
+            String table = requestMap.getString("table");
+            String sql = String.format("drop table %s", table);
             responseMap.put("sql", sql);
             statement = connection.prepareStatement(sql);
             statement.execute();

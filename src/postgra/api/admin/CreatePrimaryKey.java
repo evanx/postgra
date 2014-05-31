@@ -18,9 +18,8 @@
         specific language governing permissions and limitations
         under the License.  
  */
-package postgra.api;
+package postgra.api.admin;
 
-import postgra.app.PostgraUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -31,6 +30,7 @@ import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
 import postgra.jdbc.DataSources;
+import postgra.jdbc.RowSets;
 import vellum.jx.JMap;
 import vellum.jx.JMapException;
 
@@ -38,33 +38,31 @@ import vellum.jx.JMapException;
  *
  * @author evan.summers
  */
-public class GuestDelete implements PostgraHttpxHandler {
+public class CreatePrimaryKey implements PostgraHttpxHandler {
     
-    private static Logger logger = LoggerFactory.getLogger(GuestUpdate.class); 
+    private static Logger logger = LoggerFactory.getLogger(CreatePrimaryKey.class); 
 
     Connection connection;
     PreparedStatement statement;
-    
+
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx, PostgraEntityService es) throws Exception {
         logger.info("handle", httpx.getPathArgs());
         JMap responseMap = new JMap();
         JMap requestMap = httpx.parseJsonMap();
+        String database = requestMap.getString("database");
+        String password = requestMap.getString("password");
+        String sql = requestMap.getString("sql");
+        connection = app.getDataSourceManager().getDatabaseConnection(database, password);
         try {
-            String user = app.authenticateGuest(requestMap);
-            String database = requestMap.getString("database");
-            connection = app.getDataSourceManager().getGuestConnection(database);
             String table = requestMap.getString("table");
-            JMap whereMap = requestMap.getMap("where");
-            String sql = String.format("delete from %s where %s and username = '%s'", table, 
-                    PostgraUtil.formatWhere(whereMap), user);
+            sql = String.format("alter table %s (%s)", table, sql);
             responseMap.put("sql", sql);
             logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
-            int count = statement.executeUpdate();
-            responseMap.put("count", count);
+            statement.execute();
             return responseMap;            
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw new JMapException(responseMap, e.getMessage());
         } finally {
             DataSources.close(connection);

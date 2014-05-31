@@ -18,11 +18,13 @@
         specific language governing permissions and limitations
         under the License.  
  */
-package postgra.api;
+package postgra.api.admin;
 
+import postgra.app.PostgraUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import postgra.app.PostgraApp;
@@ -30,17 +32,17 @@ import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
 import postgra.jdbc.DataSources;
-import postgra.jdbc.RowSets;
 import vellum.jx.JMap;
 import vellum.jx.JMapException;
+import vellum.util.Lists;
 
 /**
  *
  * @author evan.summers
  */
-public class CreatePrimaryKey implements PostgraHttpxHandler {
+public class AdminDelete implements PostgraHttpxHandler {
     
-    private static Logger logger = LoggerFactory.getLogger(CreatePrimaryKey.class); 
+    private static Logger logger = LoggerFactory.getLogger(AdminDelete.class); 
 
     Connection connection;
     PreparedStatement statement;
@@ -52,20 +54,24 @@ public class CreatePrimaryKey implements PostgraHttpxHandler {
         JMap requestMap = httpx.parseJsonMap();
         String database = requestMap.getString("database");
         String password = requestMap.getString("password");
-        String sql = requestMap.getString("sql");
+        String table = requestMap.getString("table");
         connection = app.getDataSourceManager().getDatabaseConnection(database, password);
         try {
-            String table = requestMap.getString("table");
-            sql = String.format("alter table %s (%s)", table, sql);
-            responseMap.put("sql", sql);
+            JMap dataMap = requestMap.getMap("data");
+            List<String> columnNameList = Lists.coerceString(Lists.listKeys(dataMap.entrySet()));
+            List<Object> valueList = Lists.listValues(dataMap.entrySet());
+            String sql = String.format("insert into table (%s) values (%s)", table, 
+                    PostgraUtil.formatNamesCsv(columnNameList), PostgraUtil.formatSqlValuesCsv(valueList));
             logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
             statement.execute();
+            responseMap.put("sql", sql);
             return responseMap;            
         } catch (SQLException e) {
             throw new JMapException(responseMap, e.getMessage());
         } finally {
-            DataSources.close(connection);
+            DataSources.close(statement, connection);
         }
     }
+
 }
