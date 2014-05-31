@@ -140,6 +140,10 @@ public class Person extends ComparableEntity implements Enabled, Serializable {
         return timeZoneId;
     }
 
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+    
     public void setPassword(char[] password) throws GeneralSecurityException {
         byte[] passwordSaltBytes = Passwords.generateSalt();
         passwordHash = Base64.encode(Passwords.hashPassword(password, passwordSaltBytes));
@@ -147,7 +151,7 @@ public class Person extends ComparableEntity implements Enabled, Serializable {
     }
 
     public boolean matchesPassword(char[] password) throws GeneralSecurityException {
-        return Passwords.matches(password, passwordHash, passwordHash);
+        return Passwords.matches(password, passwordHash, passwordSalt);
     }
     
     public JMap getMap() {

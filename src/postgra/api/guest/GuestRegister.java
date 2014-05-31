@@ -39,7 +39,7 @@ import vellum.jx.JMapsException;
  */
 public class GuestRegister implements PostgraHttpxHandler {
     
-    private static Logger logger = LoggerFactory.getLogger(GuestUpdate.class); 
+    private static Logger logger = LoggerFactory.getLogger(GuestRegister.class); 
 
     final JMap responseMap = new JMap();
     
@@ -58,6 +58,7 @@ public class GuestRegister implements PostgraHttpxHandler {
             person = new Person(email);
             person.setRegisterTime(new Date());
             person.setPassword(password.toCharArray());
+            responseMap.add("id", person.getId());
             es.persist(person);
             es.commit();
             return responseMap;

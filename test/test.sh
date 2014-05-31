@@ -56,7 +56,9 @@ c0drop() {
 c0create() {
   c2curl 'admin/createDatabase' "{ $databaseJson }"
   c2curl 'admin/createTable' "{ $tableJson, sql: 'name text, type text' }"
-  c2curl 'guest/register' "{ email: '$email', password: '$password' }"
+}
+
+c0guest() {
   c2curl 'guest/insert' "{ $tableJson, data: { name: 'Evan1', type: 'person'} }"
   c2curl 'guest/insert' "{ $tableJson, data: { name: 'Evan2', type: 'person' } }"
   c2curl 'guest/select' "{ $tableJson, where: { name: 'Evan2' } }"
@@ -64,8 +66,24 @@ c0create() {
   c2curl 'guest/select' "{ $tableJson, where: { name: 'Evan2' } }"
 }
 
+c0reg() {
+  c2curl 'guest/register' "{ email: '$email', password: '$password' }"
+}
+
+c0dereg() {
+  c2curl 'guest/deregister' "{ email: '$email', password: '$password' }"
+}
+
+c0testreg() {
+  c0reg
+  c0dereg
+}
+
 c0default() {
   c0create
+  c0reg
+  c0guest
+  c0dereg
   c0drop
 }
 
