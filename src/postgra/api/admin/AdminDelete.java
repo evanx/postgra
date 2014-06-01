@@ -54,16 +54,15 @@ public class AdminDelete implements PostgraHttpxHandler {
         JMap requestMap = httpx.parseJsonMap();
         String database = requestMap.getString("database");
         String password = requestMap.getString("password");
-        String table = requestMap.getString("table");
         connection = app.getDataSourceManager().getDatabaseConnection(database, password);
         try {
-            JMap dataMap = requestMap.getMap("data");
-            List<String> columnNameList = Lists.coerceString(Lists.listKeys(dataMap.entrySet()));
-            List<Object> valueList = Lists.listValues(dataMap.entrySet());
-            String sql = String.format("insert into table (%s) values (%s)", table, 
-                    PostgraUtil.formatNamesCsv(columnNameList), PostgraUtil.formatSqlValuesCsv(valueList));
+            String table = requestMap.getString("table");
+            JMap whereMap = requestMap.getMap("where");
+            String sql = String.format("delete from %s where %s", table, 
+                    PostgraUtil.formatWhere(whereMap));
+            responseMap.put("sql", sql);
             logger.info("sql {}", sql);
-            statement = connection.prepareStatement(sql);
+           statement = connection.prepareStatement(sql);
             statement.execute();
             responseMap.put("sql", sql);
             return responseMap;            

@@ -63,11 +63,12 @@ public class CreateDatabase implements PostgraHttpxHandler {
             statement.execute();
             RowSets.close(statement);
             sql = String.format("create user %s login password '%s'", user, password);
+            responseMap.put("sql", sql);
             statement = connection.prepareStatement(sql);
             statement.execute();
             RowSets.close(statement);
             sql = String.format("alter database %s owner to %s", database, user);
-            responseMap.put("sql", sql);
+            responseMap.put("sqla", sql);
             logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
             statement.execute();

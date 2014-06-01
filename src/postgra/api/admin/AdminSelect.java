@@ -60,9 +60,9 @@ public class AdminSelect implements PostgraHttpxHandler {
         JMap requestMap = httpx.parseJsonMap();
         String database = requestMap.getString("database");
         String password = requestMap.getString("password");
-        String table = requestMap.getString("table");
         connection = app.getDataSourceManager().getDatabaseConnection(database, password);
         try {
+            String table = requestMap.getString("table");
             JMap dataMap = requestMap.getMap("data");
             sql = String.format("select * from %s where %s", table, PostgraUtil.formatWhere(dataMap));
             responseMap.put("sql", sql);
