@@ -94,8 +94,7 @@ public class PostgraApp {
 
     public String encrypt(JMap responseMap) throws GeneralSecurityException {
         return Base64.encode(cipher.encrypt(JMaps.format(responseMap).getBytes()));
-    }
-    
+    }    
 
     public JMap decrypt(String encryptedString) throws GeneralSecurityException {
         return JMaps.parse(new String(cipher.decrypt(Base64.decode(encryptedString))));
