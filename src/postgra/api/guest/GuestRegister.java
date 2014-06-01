@@ -75,7 +75,7 @@ public class GuestRegister implements PostgraHttpxHandler {
             responseMap.put("hmacSecret", secret);
             String token = app.encrypt(responseMap);
             responseMap = app.decrypt(token);
-S            responseMap.put("toptSecret", topt.getSecret());
+            responseMap.put("toptSecret", topt.getSecret());
             responseMap.put("authToken", token);
             responseMap.put("registerTime", registerTime.getTime());
             return responseMap;
