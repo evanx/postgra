@@ -30,6 +30,7 @@ import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
 import postgra.entity.Person;
 import vellum.crypto.hmac.Hmac;
+import vellum.crypto.topt.Topt;
 import vellum.jx.JMap;
 import vellum.jx.JMapException;
 import vellum.jx.JMapsException;
@@ -57,11 +58,13 @@ public class GuestRegister implements PostgraHttpxHandler {
                 throw new PersistenceException("Email already exists: " + email);
             }
             Date registerTime = new Date();
+            Topt topt = new Topt();
             Hmac hmac = new Hmac();
             String secret = hmac.generateSecret();
             person = new Person(email);
             person.setPassword(password.toCharArray());
             person.setHmacSecret(secret);
+            person.setToptSecret(secret);
             person.setRegisterTime(registerTime);
             person.setLoginTime(registerTime);
             es.persist(person);

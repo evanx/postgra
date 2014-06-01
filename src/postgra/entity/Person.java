@@ -167,6 +167,14 @@ public class Person extends ComparableEntity implements Enabled, Serializable {
     public String getHmacSecret() {
         return hmacSecret;
     }
+
+    public void setToptSecret(String toptSecret) {
+        this.toptSecret = toptSecret;
+    }
+
+    public String getToptSecret() {
+        return toptSecret;
+    }
     
     public JMap getMap() {
         JMap map = new JMap();
