@@ -29,6 +29,7 @@ import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
 import postgra.entity.Person;
+import postgra.entity.Person_;
 import vellum.crypto.hmac.Hmac;
 import vellum.crypto.topt.Topt;
 import vellum.jx.JMap;
@@ -74,6 +75,7 @@ public class GuestRegister implements PostgraHttpxHandler {
             responseMap.put("hmacSecret", secret);
             String token = app.encrypt(responseMap);
             responseMap = app.decrypt(token);
+S            responseMap.put("toptSecret", topt.getSecret());
             responseMap.put("authToken", token);
             responseMap.put("registerTime", registerTime.getTime());
             return responseMap;
