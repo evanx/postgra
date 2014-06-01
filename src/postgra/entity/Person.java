@@ -69,6 +69,12 @@ public class Person extends ComparableEntity implements Enabled, Serializable {
     
     @Column(name = "tz")
     String timeZoneId;
+
+    @Column(name = "hmac_secret")
+    String hmacSecret;    
+
+    @Column(name = "topt_secret")
+    String toptSecret;    
     
     @Column()    
     boolean enabled = false;
@@ -152,6 +158,14 @@ public class Person extends ComparableEntity implements Enabled, Serializable {
 
     public boolean matchesPassword(char[] password) throws GeneralSecurityException {
         return Passwords.matches(password, passwordHash, passwordSalt);
+    }
+
+    public void setHmacSecret(String hmacSecret) {
+        this.hmacSecret = hmacSecret;
+    }
+
+    public String getHmacSecret() {
+        return hmacSecret;
     }
     
     public JMap getMap() {

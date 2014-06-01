@@ -70,7 +70,7 @@ public class GuestLogin implements PostgraHttpxHandler {
             responseMap.put("hmacSecret", secret);
             String token = app.encrypt(responseMap);
             responseMap = app.decrypt(token);
-            responseMap.put("token", token);
+            responseMap.put("authToken", token);
             return responseMap;
         } catch (JMapsException | PersistenceException e) {
             throw new JMapException(responseMap, e.getMessage());

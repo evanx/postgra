@@ -29,6 +29,7 @@ import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
 import postgra.entity.Person;
+import vellum.crypto.hmac.Hmac;
 import vellum.jx.JMap;
 import vellum.jx.JMapException;
 import vellum.jx.JMapsException;
@@ -39,7 +40,7 @@ import vellum.jx.JMapsException;
  */
 public class GuestRegister implements PostgraHttpxHandler {
     
-    private static Logger logger = LoggerFactory.getLogger(GuestRegister.class); 
+    static Logger logger = LoggerFactory.getLogger(GuestRegister.class); 
 
     JMap responseMap = new JMap();
     
@@ -55,18 +56,23 @@ public class GuestRegister implements PostgraHttpxHandler {
             if (person != null) {
                 throw new PersistenceException("Email already exists: " + email);
             }
+            Date registerTime = new Date();
+            Hmac hmac = new Hmac();
+            String secret = hmac.generateSecret();
             person = new Person(email);
             person.setPassword(password.toCharArray());
-            Date loginTime = new Date();
-            person.setRegisterTime(loginTime);
-            person.setLoginTime(loginTime);
+            person.setHmacSecret(secret);
+            person.setRegisterTime(registerTime);
+            person.setLoginTime(registerTime);
             es.persist(person);
             es.commit();
             responseMap.put("email", email);
-            responseMap.put("loginTime", loginTime.getTime());
+            responseMap.put("loginTime", registerTime.getTime());
+            responseMap.put("hmacSecret", secret);
             String token = app.encrypt(responseMap);
             responseMap = app.decrypt(token);
-            responseMap.put("token", token);
+            responseMap.put("authToken", token);
+            responseMap.put("registerTime", registerTime.getTime());
             return responseMap;
         } catch (JMapsException | PersistenceException e) {
             throw new JMapException(responseMap, e.getMessage());
