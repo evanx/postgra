@@ -29,10 +29,9 @@ import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
 import postgra.entity.Person;
-import vellum.crypto.asymetric.AsymmetricCipher;
+import vellum.crypto.hmac.Hmac;
 import vellum.jx.JMap;
 import vellum.jx.JMapException;
-import vellum.jx.JMaps;
 import vellum.jx.JMapsException;
 
 /**
@@ -60,11 +59,15 @@ public class GuestLogin implements PostgraHttpxHandler {
             if (!person.matchesPassword(password.toCharArray())) {
                 throw new PersistenceException("Invalid password");
             }
+            Hmac hmac = new Hmac();
+            String secret = hmac.generateSecret();
             Date loginTime = new Date();
             person.setLoginTime(loginTime);
+            person.setHmacSecret(secret);
             es.commit();
             responseMap.put("email", email);
             responseMap.put("loginTime", loginTime.getTime());
+            responseMap.put("hmacSecret", secret);
             String token = app.encrypt(responseMap);
             responseMap = app.decrypt(token);
             responseMap.put("token", token);
