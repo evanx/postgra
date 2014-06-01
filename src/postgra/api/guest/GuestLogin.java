@@ -29,8 +29,10 @@ import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
 import postgra.entity.Person;
+import vellum.crypto.asymetric.AsymmetricCipher;
 import vellum.jx.JMap;
 import vellum.jx.JMapException;
+import vellum.jx.JMaps;
 import vellum.jx.JMapsException;
 
 /**
@@ -41,7 +43,7 @@ public class GuestLogin implements PostgraHttpxHandler {
     
     private static Logger logger = LoggerFactory.getLogger(GuestLogin.class); 
 
-    final JMap responseMap = new JMap();
+    JMap responseMap = new JMap();
     
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx) throws Exception {
@@ -58,8 +60,14 @@ public class GuestLogin implements PostgraHttpxHandler {
             if (!person.matchesPassword(password.toCharArray())) {
                 throw new PersistenceException("Invalid password");
             }
-            person.setLoginTime(new Date());
+            Date loginTime = new Date();
+            person.setLoginTime(loginTime);
             es.commit();
+            responseMap.put("email", email);
+            responseMap.put("loginTime", loginTime.getTime());
+            String token = app.encrypt(responseMap);
+            responseMap = app.decrypt(token);
+            responseMap.put("token", token);
             return responseMap;
         } catch (JMapsException | PersistenceException e) {
             throw new JMapException(responseMap, e.getMessage());

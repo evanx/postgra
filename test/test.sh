@@ -6,16 +6,20 @@ email=test4@test.org
 user=$email
 databaseJson="database: '$database', password: '$password', guest: true"
 tableJson="table: '$table', user: '$user', $databaseJson"
+tmp=~/tmp/postgra/test
+mkdir -p $tmp
 
 c1curl() {
-  curl -s -k https://localhost:8443/api/$1 | python -mjson.tool
+  curl -s -k https://localhost:8443/api/$1 > $tmp/out
+  cat $tmp/out | python -mjson.tool || cat $tmp/out
   curlCode=$?  
   echo 
 }
 
 c2curl() {
   echo "$@"
-  curl -s -k https://localhost:8443/api/$1 -d "$2" | python -mjson.tool
+  curl -s -k https://localhost:8443/api/$1 -d "$2" > $tmp/out
+  cat $tmp/out | python -mjson.tool || cat $tmp/out
   curlCode=$?  
   echo 
 }
@@ -68,6 +72,7 @@ c0guest() {
 
 c0reg() {
   c2curl 'guest/register' "{ email: '$email', password: '$password' }"
+  c2curl 'guest/login' "{ email: '$email', password: '$password' }"
 }
 
 c0dereg() {

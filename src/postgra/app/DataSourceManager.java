@@ -80,7 +80,7 @@ public class DataSourceManager {
     }
     
     public Connection getGuestConnection(String database) throws SQLException {
-        return getDataSource(database, "guest", "guest").getConnection();
+        return getDataSource(database, "postgra", "postgra").getConnection();
     }
     
     public DataSource getDataSource(String database, String user, String password) {

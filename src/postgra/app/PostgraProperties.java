@@ -24,7 +24,6 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
-import org.apache.tomcat.jdbc.pool.PoolProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vellum.json.JsonObjectDelegate;
@@ -46,6 +45,8 @@ public class PostgraProperties extends JConsoleMap {
     JMap properties;
     JMap webServer;
     String appHost;
+    String privateKeyFile;
+    String publicKeyFile;
     boolean testing = false;
     Set<String> adminEmails = new HashSet();
     MailerProperties mailerProperties = new MailerProperties();
@@ -60,6 +61,8 @@ public class PostgraProperties extends JConsoleMap {
         String jsonConfigFileName = getString("config.json", "config.json");
         JsonObjectDelegate object = new JsonObjectDelegate(new File(jsonConfigFileName));
         putAll(object.getMap());
+        publicKeyFile = object.getString("publicKeyFile");
+        privateKeyFile = object.getString("privateKeyFile");
         appHost = object.getString("appHost");
         testing = object.getBoolean("testing", testing);
         adminEmails = object.getStringSet("adminEmails");

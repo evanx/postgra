@@ -30,11 +30,13 @@ import javax.persistence.PersistenceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import postgra.entity.Person;
+import vellum.crypto.asymetric.AsymmetricCipher;
 import vellum.httpserver.VellumHttpsServer;
 import vellum.jx.JMap;
-import vellum.jx.JMapsException;
+import vellum.jx.JMaps;
 import vellum.mail.Mailer;
 import vellum.ssl.OpenTrustManager;
+import vellum.util.Base64;
 
 
 /**
@@ -55,6 +57,7 @@ public class PostgraApp {
     Thread messageThread = new MessageThread(this);
     ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
     DataSourceManager dataSourceManager = new DataSourceManager();
+    AsymmetricCipher cipher = new AsymmetricCipher();
     
     public PostgraApp() {
         super();
@@ -62,6 +65,7 @@ public class PostgraApp {
 
     public void init(PostgraProperties properties) throws Exception {
         this.properties = properties;
+        cipher.generateKeyPair();
         mailer = new Mailer(properties.getMailerProperties());
         logger.info("properties {}", properties);
         webServer.start(properties.getWebServer(),
@@ -88,6 +92,14 @@ public class PostgraApp {
         logger.info("started");
     }
 
+    public String encrypt(JMap responseMap) throws GeneralSecurityException {
+        return Base64.encode(cipher.encrypt(JMaps.format(responseMap).getBytes()));
+    }
+
+    public JMap decrypt(String encryptedString) throws GeneralSecurityException {
+        return JMaps.parse(new String(cipher.decrypt(Base64.decode(encryptedString))));
+    }
+    
     class InitThread extends Thread {
 
         @Override
@@ -159,6 +171,10 @@ public class PostgraApp {
         return dataSourceManager;
     }        
 
+    public AsymmetricCipher getCipher() {
+        return cipher;
+    }
+    
     public String authenticateGuest(JMap map) throws Exception {
         String user = map.getString("user");
         String password = map.getString("password");

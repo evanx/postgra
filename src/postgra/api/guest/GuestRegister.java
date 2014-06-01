@@ -41,7 +41,7 @@ public class GuestRegister implements PostgraHttpxHandler {
     
     private static Logger logger = LoggerFactory.getLogger(GuestRegister.class); 
 
-    final JMap responseMap = new JMap();
+    JMap responseMap = new JMap();
     
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx) throws Exception {
@@ -56,11 +56,17 @@ public class GuestRegister implements PostgraHttpxHandler {
                 throw new PersistenceException("Email already exists: " + email);
             }
             person = new Person(email);
-            person.setRegisterTime(new Date());
             person.setPassword(password.toCharArray());
-            responseMap.add("id", person.getId());
+            Date loginTime = new Date();
+            person.setRegisterTime(loginTime);
+            person.setLoginTime(loginTime);
             es.persist(person);
             es.commit();
+            responseMap.put("email", email);
+            responseMap.put("loginTime", loginTime.getTime());
+            String token = app.encrypt(responseMap);
+            responseMap = app.decrypt(token);
+            responseMap.put("token", token);
             return responseMap;
         } catch (JMapsException | PersistenceException e) {
             throw new JMapException(responseMap, e.getMessage());
