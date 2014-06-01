@@ -1,4 +1,4 @@
-postgresdb
-==========
+postgra
+=======
 
-microservice for PostgreSQL service via HTTP/JSON API as backend for JavaScript and mobile apps
+Microservice for PostgreSQL via HTTP/JSON API
