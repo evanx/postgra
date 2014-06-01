@@ -5,9 +5,9 @@
     <class>postgra.entity.Person</class>
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/postgra"/>
-      <property name="javax.persistence.jdbc.password" value="postgra"/>
       <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver"/>
       <property name="javax.persistence.jdbc.user" value="postgra"/>
+      <property name="javax.persistence.jdbc.password" value="postgra"/>
       <property name="javax.persistence.schema-generation.database.action" value="drop-and-create"/>
     </properties>
   </persistence-unit>
