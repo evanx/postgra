@@ -29,7 +29,7 @@ import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
 import postgra.entity.Person;
-import vellum.crypto.hmac.Hmac;
+import vellum.crypto.hmac.Hmacs;
 import vellum.jx.JMap;
 import vellum.jx.JMapException;
 import vellum.jx.JMapsException;
@@ -59,15 +59,14 @@ public class GuestLogin implements PostgraHttpxHandler {
             if (!person.matchesPassword(password.toCharArray())) {
                 throw new PersistenceException("Invalid password");
             }
-            Hmac hmac = new Hmac();
-            String secret = hmac.generateSecret();
+            String hmacSecret = Hmacs.generateSecret();
             Date loginTime = new Date();
             person.setLoginTime(loginTime);
-            person.setHmacSecret(secret);
+            person.setHmacSecret(hmacSecret);
             es.commit();
             responseMap.put("email", email);
             responseMap.put("loginTime", loginTime.getTime());
-            responseMap.put("hmacSecret", secret);
+            responseMap.put("hmacSecret", hmacSecret);
             String token = app.encrypt(responseMap);
             responseMap = app.decrypt(token);
             responseMap.put("authToken", token);

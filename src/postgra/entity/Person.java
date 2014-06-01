@@ -74,7 +74,7 @@ public class Person extends ComparableEntity implements Enabled, Serializable {
     String hmacSecret;    
 
     @Column(name = "topt_secret")
-    String toptSecret;    
+    String totpSecret;    
     
     @Column()    
     boolean enabled = false;
@@ -168,12 +168,12 @@ public class Person extends ComparableEntity implements Enabled, Serializable {
         return hmacSecret;
     }
 
-    public void setToptSecret(String toptSecret) {
-        this.toptSecret = toptSecret;
+    public void setTotpSecret(String totpSecret) {
+        this.totpSecret = totpSecret;
     }
 
     public String getToptSecret() {
-        return toptSecret;
+        return totpSecret;
     }
     
     public JMap getMap() {
