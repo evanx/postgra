@@ -57,4 +57,5 @@ See https://trello.com/b/SuTdcMZd/postgra
   curl -s -k https://ngena.com:8843/api/admin/dropDatabase -d '{ 
      database: "mydb", password: "mypass" 
   }' | python -mjson.tool
+
 </pre>
