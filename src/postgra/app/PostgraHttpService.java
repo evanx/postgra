@@ -48,6 +48,7 @@ import postgra.api.guest.GuestInsert;
 import postgra.api.guest.GuestLogin;
 import postgra.api.guest.GuestLogout;
 import postgra.api.guest.GuestRegister;
+import postgra.api.guest.GuestSave;
 import postgra.api.guest.GuestSelect;
 import postgra.api.guest.GuestUpdate;
 import vellum.exception.Exceptions;
@@ -154,6 +155,8 @@ public class PostgraHttpService implements HttpHandler {
             return new GuestLogin();
         } else if (path.endsWith("/logout")) {
             return new GuestLogout();
+        } else if (path.endsWith("/save")) {
+            return new GuestSave();
         } else if (path.endsWith("/insert")) {
             return new GuestInsert();
         } else if (path.endsWith("/update")) {

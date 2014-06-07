@@ -68,6 +68,8 @@ c0guest() {
   c2curl 'guest/select' "{ $tableJson, where: { name: 'Evan2' } }"
   c2curl 'guest/update' "{ $tableJson, data: { type: 'individual' }, where: { name: 'Evan2' } }"
   c2curl 'guest/select' "{ $tableJson, where: { name: 'Evan2' } }"
+  c2curl 'guest/save' "{ $tableJson, data: { name: 'Evan2', type: 'java developer'} }"
+  c2curl 'guest/save' "{ $tableJson, data: { id: 10, type: 'javascript developer'} }"
 }
 
 c0reg() {
