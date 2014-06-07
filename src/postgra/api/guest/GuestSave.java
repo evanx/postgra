@@ -18,14 +18,15 @@
         specific language governing permissions and limitations
         under the License.  
  */
-package postgra.api.admin;
+package postgra.api.guest;
 
+import postgra.app.PostgraUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import postgra.app.PostgraApp;
+import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
 import postgra.jdbc.DataSources;
@@ -36,43 +37,38 @@ import vellum.jx.JMapException;
  *
  * @author evan.summers
  */
-public class CreateTable implements PostgraHttpxHandler {
+public class GuestSave implements PostgraHttpxHandler {
     
-    private static Logger logger = LoggerFactory.getLogger(CreateTable.class); 
+    private static Logger logger = LoggerFactory.getLogger(GuestSave.class); 
 
     Connection connection;
     PreparedStatement statement;
-    String sql;
-
+    
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx) throws Exception {
         logger.info("handle", httpx.getPathArgs());
         JMap responseMap = new JMap();
         JMap requestMap = httpx.parseJsonMap();
-        responseMap.put("request", requestMap);
         String database = requestMap.getString("database");
-        String password = requestMap.getString("password");
-        String table = requestMap.getString("table");
-        sql = requestMap.getString("sql");
-        connection = app.getDataSourceManager().getDatabaseConnection(database, password);
+        connection = app.getDataSourceManager().getGuestConnection(database);
         try {
-            sql = String.format("id serial, %s", sql);
-            if (requestMap.getBoolean("guest", false)) {
-                sql += ", username varchar(32) not null";
-            }
-            if (requestMap.getBoolean("json", false)) {
-                sql += ", json varchar(4096)";
-            }
-            sql = String.format("create table %s (%s)", table, sql);
+            String user = app.authenticateGuest(requestMap);
+            String table = requestMap.getString("table");
+            JMap dataMap = requestMap.getMap("data");
+            JMap whereMap = requestMap.getMap("where");
+            String sql = String.format("update %s set %s where %s and username = '%s'", table, 
+                    PostgraUtil.formatUpdate(dataMap), PostgraUtil.formatWhere(whereMap), user);
             responseMap.put("sql", sql);
             logger.info("sql {}", sql);
             statement = connection.prepareStatement(sql);
-            statement.execute();
+            int count = statement.executeUpdate();
+            responseMap.put("count", count);
             return responseMap;            
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new JMapException(responseMap, e.getMessage());
         } finally {
             DataSources.close(connection);
         }
     }
+
 }
