@@ -29,6 +29,7 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import postgra.api.admin.AdminDelete;
+import postgra.api.admin.AdminExecute;
 import postgra.api.admin.AdminInsert;
 import postgra.api.admin.AdminSelect;
 import postgra.api.admin.AdminUpdate;
@@ -113,6 +114,8 @@ public class PostgraHttpService implements HttpHandler {
     private PostgraHttpxHandler newAdminHandler(String path) throws Exception {
         if (path.endsWith("/close")) {
             return new Close();
+        } else if (path.endsWith("/execute")) {
+            return new AdminExecute();
         } else if (path.endsWith("/createDatabase")) {
             return new CreateDatabase();
         } else if (path.endsWith("/dropDatabase")) {

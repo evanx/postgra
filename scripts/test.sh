@@ -60,6 +60,7 @@ c0drop() {
 c0create() {
   c2curl 'admin/createDatabase' "{ $databaseJson }"
   c2curl 'admin/createTable' "{ $tableJson, sql: 'name text, type text' }"
+  c2curl 'admin/execute' "{ $databaseJson, sql: 'create unique index on $table (name)' }"
 }
 
 c0guest() {
@@ -68,7 +69,7 @@ c0guest() {
   c2curl 'guest/select' "{ $tableJson, where: { name: 'Evan2' } }"
   c2curl 'guest/update' "{ $tableJson, data: { type: 'individual' }, where: { name: 'Evan2' } }"
   c2curl 'guest/select' "{ $tableJson, where: { name: 'Evan2' } }"
-  c2curl 'guest/save' "{ $tableJson, data: { name: 'Evan2', type: 'java developer'} }"
+  c2curl 'guest/save' "{ $tableJson, data: { name: 'Evan3', type: 'java developer'} }"
   c2curl 'guest/save' "{ $tableJson, data: { id: 10, type: 'javascript developer'} }"
 }
 
