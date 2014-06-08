@@ -20,6 +20,7 @@
  */
 package postgra.api.guest;
 
+import java.security.GeneralSecurityException;
 import java.util.Date;
 import javax.persistence.PersistenceException;
 import org.slf4j.Logger;
@@ -73,7 +74,10 @@ public class GuestRegister implements PostgraHttpxHandler {
             responseMap.put("hmacSecret", hmacSecret);
             String token = app.encrypt(responseMap);
             responseMap = app.decrypt(token);
+            int totpCode = Totps.getCurrentCode(totpSecret);
+            assert Totps.verifyCode(totpSecret, totpCode);
             responseMap.put("totpSecret", totpSecret);
+            responseMap.put("totpNow", totpCode);
             responseMap.put("totpQRCodeUrl", Totps.getQRBarcodeURL("postgra." + email, totpSecret));
             responseMap.put("authToken", token);
             responseMap.put("registerTime", registerTime.getTime());
