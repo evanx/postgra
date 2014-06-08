@@ -74,12 +74,12 @@ c0guest() {
 }
 
 c0reg() {
-  c2curl 'guest/register' "{ email: '$email', password: '$password' }"
-  c2curl 'guest/login' "{ email: '$email', password: '$password' }"
+  c2curl 'user/register' "{ email: '$email', password: '$password' }"
+  c2curl 'user/login' "{ email: '$email', password: '$password' }"
 }
 
 c0dereg() {
-  c2curl 'guest/deregister' "{ email: '$email', password: '$password' }"
+  c2curl 'user/deregister' "{ email: '$email', password: '$password' }"
 }
 
 c0testreg() {

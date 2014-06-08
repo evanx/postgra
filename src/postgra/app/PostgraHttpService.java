@@ -85,6 +85,8 @@ public class PostgraHttpService implements HttpHandler {
                 handle(new PersonaLogin(), httpExchange);
             } else if (path.equals("/api/personaLogout")) {
                 handle(new PersonaLogout(), httpExchange);
+            } else if (path.startsWith("/api/user/")) {
+                handle(newUserHandler(path), httpExchange);
             } else if (path.startsWith("/api/admin/")) {
                 handle(newAdminHandler(path), httpExchange);
             } else if (path.startsWith("/api/guest/")) {
@@ -149,7 +151,7 @@ public class PostgraHttpService implements HttpHandler {
         throw new Exception("Service not found: " + path);
     }
 
-    private PostgraHttpxHandler newGuestHandler(String path) throws Exception {
+    private PostgraHttpxHandler newUserHandler(String path) throws Exception {
         if (path.endsWith("/register")) {
             return new GuestRegister();
         } else if (path.endsWith("/deregister")) {
@@ -158,7 +160,12 @@ public class PostgraHttpService implements HttpHandler {
             return new GuestLogin();
         } else if (path.endsWith("/logout")) {
             return new GuestLogout();
-        } else if (path.endsWith("/save")) {
+        }
+        throw new Exception("Service not found: " + path);
+    }
+    
+    private PostgraHttpxHandler newGuestHandler(String path) throws Exception {
+        if (path.endsWith("/save")) {
             return new GuestSave();
         } else if (path.endsWith("/insert")) {
             return new GuestInsert();
