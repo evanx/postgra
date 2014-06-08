@@ -199,7 +199,9 @@ public class PostgraHttpService implements HttpHandler {
 
     private void handleError(PostgraHttpx httpx, Throwable e) {
         httpx.sendError(e);
-        e.printStackTrace(System.out);
+        if (false) {
+            e.printStackTrace(System.out);
+        }
     }
 
     public JMap getMetrics() {

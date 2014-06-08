@@ -66,6 +66,12 @@ public class Person extends ComparableEntity implements Enabled, Serializable {
 
     @Column(name = "password_salt")
     String passwordSalt;
+
+    @Column(name = "pw_iteration")
+    int iterationCount;
+
+    @Column(name = "pw_keysize")
+    int keySize;
     
     @Column(name = "tz")
     String timeZoneId;
@@ -154,10 +160,12 @@ public class Person extends ComparableEntity implements Enabled, Serializable {
         byte[] passwordSaltBytes = Passwords.generateSalt();
         passwordHash = Base64.encode(Passwords.hashPassword(password, passwordSaltBytes));
         passwordSalt = Base64.encode(passwordSaltBytes);
+        iterationCount = Passwords.ITERATION_COUNT;
+        keySize = Passwords.KEY_SIZE;
     }
 
     public boolean matchesPassword(char[] password) throws GeneralSecurityException {
-        return Passwords.matches(password, passwordHash, passwordSalt);
+        return Passwords.matches(password, passwordHash, passwordSalt, iterationCount, keySize);
     }
 
     public void setHmacSecret(String hmacSecret) {
