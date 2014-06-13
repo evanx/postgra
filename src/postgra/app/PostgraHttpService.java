@@ -28,6 +28,7 @@ import postgra.web.PersonaLogout;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import postgra.api.access.GetContent;
 import postgra.api.admin.AdminDelete;
 import postgra.api.admin.AdminExecute;
 import postgra.api.admin.AdminInsert;
@@ -52,6 +53,7 @@ import postgra.api.guest.GuestRegister;
 import postgra.api.guest.GuestSave;
 import postgra.api.guest.GuestSelect;
 import postgra.api.guest.GuestUpdate;
+import postgra.api.upload.PostContent;
 import vellum.exception.Exceptions;
 import vellum.httphandler.WebHttpHandler;
 import vellum.jx.JMap;
@@ -85,6 +87,10 @@ public class PostgraHttpService implements HttpHandler {
                 handle(new PersonaLogin(), httpExchange);
             } else if (path.equals("/api/personaLogout")) {
                 handle(new PersonaLogout(), httpExchange);
+            } else if (path.startsWith("/api/access/")) {
+                handle(newAccessHandler(path), httpExchange);
+            } else if (path.startsWith("/api/upload/")) {
+                handle(newUploadHandler(path), httpExchange);
             } else if (path.startsWith("/api/user/")) {
                 handle(newUserHandler(path), httpExchange);
             } else if (path.startsWith("/api/admin/")) {
@@ -113,6 +119,20 @@ public class PostgraHttpService implements HttpHandler {
         new ErrorHttpHandler(app).handle(httpExchange, errorMessage);
     }
 
+    private PostgraHttpxHandler newAccessHandler(String path) throws Exception {
+        if (path.startsWith("/access/")) {
+            return new GetContent();
+        }
+        throw new Exception("Service not found: " + path);
+    }
+
+    private PostgraHttpxHandler newUploadHandler(String path) throws Exception {
+        if (path.startsWith("/upload/")) {
+            return new PostContent();
+        }
+        throw new Exception("Service not found: " + path);
+    }
+    
     private PostgraHttpxHandler newAdminHandler(String path) throws Exception {
         if (path.endsWith("/close")) {
             return new Close();
