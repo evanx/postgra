@@ -28,7 +28,8 @@ import postgra.web.PersonaLogout;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import postgra.api.access.GetContent;
+import postgra.api.content.GetContent;
+import postgra.api.content.HeadContent;
 import postgra.api.admin.AdminDelete;
 import postgra.api.admin.AdminExecute;
 import postgra.api.admin.AdminInsert;
@@ -53,7 +54,8 @@ import postgra.api.guest.GuestRegister;
 import postgra.api.guest.GuestSave;
 import postgra.api.guest.GuestSelect;
 import postgra.api.guest.GuestUpdate;
-import postgra.api.upload.PostContent;
+import postgra.api.content.DeleteContent;
+import postgra.api.content.SaveContent;
 import vellum.exception.Exceptions;
 import vellum.httphandler.WebHttpHandler;
 import vellum.jx.JMap;
@@ -87,10 +89,8 @@ public class PostgraHttpService implements HttpHandler {
                 handle(new PersonaLogin(), httpExchange);
             } else if (path.equals("/api/personaLogout")) {
                 handle(new PersonaLogout(), httpExchange);
-            } else if (path.startsWith("/api/access/")) {
-                handle(newAccessHandler(path), httpExchange);
-            } else if (path.startsWith("/api/upload/")) {
-                handle(newUploadHandler(path), httpExchange);
+            } else if (path.startsWith("/api/content/")) {
+                handleContent(httpExchange);
             } else if (path.startsWith("/api/user/")) {
                 handle(newUserHandler(path), httpExchange);
             } else if (path.startsWith("/api/admin/")) {
@@ -119,20 +119,23 @@ public class PostgraHttpService implements HttpHandler {
         new ErrorHttpHandler(app).handle(httpExchange, errorMessage);
     }
 
-    private PostgraHttpxHandler newAccessHandler(String path) throws Exception {
-        if (path.startsWith("/access/")) {
-            return new GetContent();
+    private void handleContent(HttpExchange httpExchange) throws Exception {
+        String path = httpExchange.getRequestURI().getPath();
+        String method = httpExchange.getRequestMethod();
+        logger.info("content {} {}", path, method);
+        if (method.equals("GET")) {
+            handleContent(new GetContent(), httpExchange);
+        } else if (method.equals("HEAD")) {
+            handleContent(new HeadContent(), httpExchange);
+        } else if (method.equals("POST")) {
+            handle(new SaveContent(), httpExchange);
+        } else if (method.equals("DELETE")) {
+            handle(new DeleteContent(), httpExchange);
+        } else {
+            throw new Exception("Service not found: " + path);
         }
-        throw new Exception("Service not found: " + path);
     }
 
-    private PostgraHttpxHandler newUploadHandler(String path) throws Exception {
-        if (path.startsWith("/upload/")) {
-            return new PostContent();
-        }
-        throw new Exception("Service not found: " + path);
-    }
-    
     private PostgraHttpxHandler newAdminHandler(String path) throws Exception {
         if (path.endsWith("/close")) {
             return new Close();
@@ -183,7 +186,7 @@ public class PostgraHttpService implements HttpHandler {
         }
         throw new Exception("Service not found: " + path);
     }
-    
+
     private PostgraHttpxHandler newGuestHandler(String path) throws Exception {
         if (path.endsWith("/save")) {
             return new GuestSave();
@@ -201,6 +204,22 @@ public class PostgraHttpService implements HttpHandler {
 
     private void handle(PostgraHttpxHandler handler, HttpExchange httpExchange) {
         handle(handler, new PostgraHttpx(app, httpExchange));
+    }
+
+    private void handleContent(PostgraHttpxContentHandler handler, HttpExchange httpExchange) {
+        handleContent(handler, new PostgraHttpx(app, httpExchange));
+    }
+    
+    private void handleContent(PostgraHttpxContentHandler handler, PostgraHttpx httpx) {
+        try {
+            handler.handle(app, httpx);
+        } catch (RuntimeException e) {
+            handleError(httpx, e);
+        } catch (Exception e) {
+            handleError(httpx, e);
+        } finally {
+            httpx.close();
+        }
     }
 
     private void handle(PostgraHttpxHandler handler, PostgraHttpx httpx) {

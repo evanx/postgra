@@ -53,7 +53,7 @@ public class PostgraProperties extends JConsoleMap {
     MockableConsole console; 
     
     public PostgraProperties() throws Exception {
-        this(new SystemConsole(), System.getProperties());
+        this(new SystemConsole(), new Properties());
     } 
     
     public PostgraProperties(MockableConsole console, Properties properties) throws Exception {

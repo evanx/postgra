@@ -18,7 +18,7 @@
         specific language governing permissions and limitations
         under the License.  
  */
-package postgra.api.upload;
+package postgra.api.content;
 
 import javax.persistence.PersistenceException;
 import org.slf4j.Logger;
@@ -26,8 +26,8 @@ import org.slf4j.LoggerFactory;
 import postgra.app.PostgraApp;
 import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
-import postgra.app.PostgraHttpxHandler;
-import postgra.entity.Person;
+import postgra.app.PostgraHttpxContentHandler;
+import postgra.entity.Content;
 import vellum.jx.JMap;
 import vellum.jx.JMapException;
 
@@ -35,34 +35,27 @@ import vellum.jx.JMapException;
  *
  * @author evan.summers
  */
-public class PostContent implements PostgraHttpxHandler {
+public class GetContent implements PostgraHttpxContentHandler {
     
-    private static Logger logger = LoggerFactory.getLogger(PostContent.class); 
+    private static Logger logger = LoggerFactory.getLogger(GetContent.class); 
 
     JMap responseMap = new JMap();
+
+    final String pattern = "/api/content/";
     
     @Override
-    public JMap handle(PostgraApp app, PostgraHttpx httpx) throws Exception {
+    public void handle(PostgraApp app, PostgraHttpx httpx) throws Exception {
         logger.info("handle", httpx.getPathArgs());
-        final JMap requestMap = httpx.parseJsonMap();
-        PostgraEntityService es = app.beginEntityService();
-        try {
-            String email = httpx.getRequestHeader("email");
-            String accessToken = httpx.getRequestHeader("accessToken");
-            String contentType = httpx.getRequestHeader("content-type");
-            // TODO auth access token
-            Person person = es.findPerson(email);
-            if (person == null) {
-                throw new PersistenceException("Email not found: " + email);
+        try (PostgraEntityService es = app.beginEntityService()) {
+            String path = httpx.getPath().substring(pattern.length());
+            Content content = es.findContent(path);
+            if (content == null) {
+                throw new PersistenceException();
             }
-            es.commit();
-            responseMap.put("email", email);
-            responseMap.put("contentType", contentType);
-            return responseMap;
+            httpx.sendResponse(content.getContentType(), content.getContent());
+            httpx.getOutputStream().write(content.getContent());
         } catch (PersistenceException e) {
             throw new JMapException(responseMap, e.getMessage());
-        } finally {
-            es.close();
         }
     }
 }

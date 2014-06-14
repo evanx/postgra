@@ -18,9 +18,8 @@
         specific language governing permissions and limitations
         under the License.  
  */
-package postgra.api.access;
+package postgra.api.content;
 
-import postgra.api.guest.*;
 import java.util.Date;
 import javax.persistence.PersistenceException;
 import org.slf4j.Logger;
@@ -29,50 +28,56 @@ import postgra.app.PostgraApp;
 import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
+import postgra.entity.Content;
 import postgra.entity.Person;
-import vellum.crypto.hmac.Hmacs;
 import vellum.jx.JMap;
 import vellum.jx.JMapException;
-import vellum.jx.JMapsException;
+import vellum.util.Streams;
 
 /**
  *
  * @author evan.summers
  */
-public class GetContent implements PostgraHttpxHandler {
+public class SaveContent implements PostgraHttpxHandler {
     
-    private static Logger logger = LoggerFactory.getLogger(GetContent.class); 
+    private static Logger logger = LoggerFactory.getLogger(SaveContent.class); 
 
+    Date now = new Date();
     JMap responseMap = new JMap();
+
+    final String pattern = "/api/content/";
     
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx) throws Exception {
         logger.info("handle", httpx.getPathArgs());
-        final JMap requestMap = httpx.parseJsonMap();
         PostgraEntityService es = app.beginEntityService();
         try {
-            String email = requestMap.getString("email");
-            String password = requestMap.getString("password");
+            String email = httpx.getRequestHeader("email");
+            String accessToken = httpx.getRequestHeader("accessToken");
+            String contentType = httpx.getRequestHeader("content-type");
+            // TODO auth access token
             Person person = es.findPerson(email);
             if (person == null) {
                 throw new PersistenceException("Email not found: " + email);
             }
-            if (!person.matchesPassword(password.toCharArray())) {
-                throw new PersistenceException("Invalid password");
+            String path = httpx.getPath().substring(pattern.length());
+            Content content = es.findContent(path);
+            if (content == null) {
+                content = new Content(path);
+                content.setCreated(now);
+            } else {
+                content.setModified(now);
             }
-            String hmacSecret = Hmacs.generateSecret();
-            Date loginTime = new Date();
-            person.setLoginTime(loginTime);
-            person.setHmacSecret(hmacSecret);
+            content.setContentType(contentType);
+            content.setContent(Streams.readBytes(httpx.getInputStream()));
+            es.merge(content);
             es.commit();
             responseMap.put("email", email);
-            responseMap.put("loginTime", loginTime.getTime());
-            responseMap.put("hmacSecret", hmacSecret);
-            String token = app.encrypt(responseMap);
-            responseMap = app.decrypt(token);
-            responseMap.put("authToken", token);
+            responseMap.put("path", path);
+            responseMap.put("contentType", contentType);
+            responseMap.put("id", content.getId());
             return responseMap;
-        } catch (JMapsException | PersistenceException e) {
+        } catch (PersistenceException e) {
             throw new JMapException(responseMap, e.getMessage());
         } finally {
             es.close();

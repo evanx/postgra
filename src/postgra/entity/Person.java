@@ -39,7 +39,7 @@ import vellum.util.Base64;
  *
  * @author evan.summers
  */
-@Entity
+@Entity(name = "person")
 public class Person extends ComparableEntity implements Enabled, Serializable {
 
     @Id

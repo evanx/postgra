@@ -24,6 +24,8 @@ import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Temporal;
@@ -35,11 +37,15 @@ import vellum.type.Enabled;
  *
  * @author evan.summers
  */
-@Entity
+@Entity(name = "content")
 public class Content extends ComparableEntity implements Enabled, Serializable {
 
-    @Id
-    @Column(name = "path_", length = 128)
+    @Id    
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "content_id")
+    Long id;
+    
+    @Column(name = "path_", length = 128, unique = true)
     String path;
     
     @Column()    
@@ -59,8 +65,11 @@ public class Content extends ComparableEntity implements Enabled, Serializable {
     @Column(name = "external_")
     boolean external = false;
     
-    @Column(name = "type", length = 32)
+    @Column(name = "content_type", length = 32)
     String contentType;
+
+    @Column(name = "content_length")
+    int contentLength;
     
     @Lob
     @Column(name = "content", length = 100000)
@@ -75,7 +84,7 @@ public class Content extends ComparableEntity implements Enabled, Serializable {
     
     @Override
     public Comparable getId() {
-        return path;
+        return id;
     }
 
     @Override
@@ -87,14 +96,55 @@ public class Content extends ComparableEntity implements Enabled, Serializable {
         this.enabled = enabled;
     }
 
+    public boolean isExternal() {
+        return external;
+    }
+
+    public void setExternal(boolean external) {
+        this.external = external;
+    }
+    
     public void setContent(byte[] content) {
         this.content = content;
+        contentLength = content.length; 
     }
 
     public byte[] getContent() {
         return content;
     }
-            
+
+    public void setCreated(Date created) {
+        this.created = created;
+    }
+
+    public Date getCreated() {
+        return created;
+    }
+
+    public void setModified(Date modified) {
+        this.modified = modified;
+    }
+
+    public Date getModified() {
+        return modified;
+    }
+    
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public int getContentLength() {
+        return contentLength;
+    }
+
+    public void setContentLength(int contentLength) {
+        this.contentLength = contentLength;
+    }
+                
     public JMap getMap() {
         JMap map = new JMap();
         map.put("url", path);
@@ -105,6 +155,6 @@ public class Content extends ComparableEntity implements Enabled, Serializable {
 
     @Override
     public String toString() {
-        return getMap().toJson();
+        return getClass().getName();
     }
 }

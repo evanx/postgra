@@ -9,8 +9,24 @@ tableJson="table: '$table', user: '$user', $databaseJson"
 tmp=~/tmp/postgra/test
 mkdir -p $tmp
 
-c1curl() {
+c1curlg() {
+  echo "GET $@"
   curl -s -k https://localhost:8443/api/$1 > $tmp/out
+  cat $tmp/out | python -mjson.tool || cat $tmp/out
+  curlCode=$?  
+  echo 
+}
+
+c1curlh() {
+  echo "HEAD $@"
+  curl -s -k -I -X HEAD https://localhost:8443/api/$1 
+  echo 
+}
+
+c1curld() {
+  echo "DELETE $@ -- $email"
+  echo "$@"
+  curl -s -k -X DELETE https://localhost:8443/api/$1 -H "email: $email" > $tmp/out
   cat $tmp/out | python -mjson.tool || cat $tmp/out
   curlCode=$?  
   echo 
@@ -25,6 +41,7 @@ c2curl() {
 }
 
 c2curlp() {
+  echo "$@ -- $email"
   curl -s -k https://localhost:8443/api/$1 -d @- -H "email: $email" -H "content-type: $2" > $tmp/out
   cat $tmp/out | python -mjson.tool || cat $tmp/out
   curlCode=$?  
@@ -86,6 +103,7 @@ c0reg() {
 }
 
 c0dereg() {
+  c2curl 'user/logout' "{ email: '$email', password: '$password' }"
   c2curl 'user/deregister' "{ email: '$email', password: '$password' }"
 }
 
@@ -103,7 +121,14 @@ c0default() {
 }
 
 c0testpost() {
-  echo "{}" | c2curlp upload/article 'application/json'
+  c0reg
+  echo '{ "title": "the title" }' | c2curlp content/article/test1234 'application/json'
+  psql -x -h localhost postgra postgra -c "select * from content"
+  c1curlh content/article/test1234 
+  c1curlg content/article/test1234 
+  c1curld content/article/test1234
+  psql -x -h localhost postgra postgra -c "select * from content"
+  c0dereg
 }
 
 if [ $# -gt 0 ]

@@ -26,6 +26,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import postgra.entity.Content;
 
 /**
  *
@@ -67,6 +68,10 @@ public class PostgraEntityService implements AutoCloseable {
         }
     }
 
+    public void merge(Object entity) {
+        em.merge(entity);
+    }
+    
     public void persist(Object entity) {
         em.persist(entity);
     }
@@ -74,9 +79,24 @@ public class PostgraEntityService implements AutoCloseable {
     public void remove(Object entity) {
         em.remove(entity);
     }
+
+    public <T> T find(Class type, Object id) {
+        return (T) em.find(type, id);
+    }
+
+    public Content findContent(String path) {
+        List<Content> list = listContent(path);
+        if (list.isEmpty()) {
+            return null;
+        }
+        if (list.size() > 1) {
+            throw new PersistenceException("Multiple results: " + path);
+        }
+        return list.get(0);
+    }
     
     public Person findPerson(String email) {
-        List<Person> list = list(email);
+        List<Person> list = listPerson(email);
         if (list.isEmpty()) {
             return null;
         }
@@ -86,10 +106,18 @@ public class PostgraEntityService implements AutoCloseable {
         return list.get(0);
     }
 
-    private List<Person> list(String email) {
-        return em.createQuery("select p from Person p"
+    private List<Person> listPerson(String email) {
+        return em.createQuery("select p from person p"
                 + " where p.email = :email").
                 setParameter("email", email).
                 getResultList();
     }
+    
+    private List<Content> listContent(String path) {
+        return em.createQuery("select c from content c"
+                + " where c.path = :path").
+                setParameter("path", path).
+                getResultList();
+    }
+    
 }
