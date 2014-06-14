@@ -25,6 +25,7 @@ import postgra.persona.PersonaException;
 import postgra.persona.PersonaInfo;
 import postgra.persona.PersonaVerifier;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.TimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +48,13 @@ public class PostgraHttpx extends Httpx {
         this.app = app;
     }
 
+    public void ensureAllowed() throws GeneralSecurityException {
+        String remoteHostAddress = getRemoteHostAddress();
+        if (!app.getProperties().isAdminAddress(remoteHostAddress)) {
+            throw new GeneralSecurityException("Not allowed: " + remoteHostAddress);
+        }
+    }
+    
     public PostgraCookie getCookie() throws JMapsException {
         if (cookie == null) {
             if (PostgraCookie.matches(getCookieMap())) {

@@ -47,7 +47,7 @@ public class PostgraProperties extends JConsoleMap {
     String publicKeyFile;
     boolean testing = false;
     List<String> adminEmails;
-    List<String> allowedAdminAddresses;
+    List<String> adminAddresses;
     MailerProperties mailerProperties = new MailerProperties();
     MockableConsole console; 
     
@@ -58,6 +58,7 @@ public class PostgraProperties extends JConsoleMap {
         appHost = getString("appHost");
         testing = getBoolean("testing", testing);
         adminEmails = getList("adminEmails");
+        adminAddresses = getList("adminAddresses");
         webServer = getMap("webServer");
         mailerProperties.init(getMap("mailer"));
         mailerProperties.setLogoBytes(Streams.readBytes(getClass().getResourceAsStream("/resources/app48.png")));
@@ -79,5 +80,12 @@ public class PostgraProperties extends JConsoleMap {
     public JConsoleMap getWebServer() {
         return new JConsoleMap(console, webServer);
     }       
+
+    public List<String> getAdminAddresses() {
+        return adminAddresses;
+    }
     
+    public boolean isAdminAddress(String address) {
+        return adminAddresses.contains(address);
+    }
 }

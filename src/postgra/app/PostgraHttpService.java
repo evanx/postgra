@@ -26,6 +26,7 @@ import postgra.web.ErrorHttpHandler;
 import postgra.web.PersonaLogin;
 import postgra.web.PersonaLogout;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import postgra.api.content.GetContent;
@@ -92,11 +93,11 @@ public class PostgraHttpService implements HttpHandler {
             } else if (path.startsWith("/api/content/")) {
                 handleContent(httpExchange);
             } else if (path.startsWith("/api/user/")) {
-                handle(newUserHandler(path), httpExchange);
+                handleRestricted(newUserHandler(path), httpExchange);
             } else if (path.startsWith("/api/admin/")) {
-                handle(newAdminHandler(path), httpExchange);
+                handleRestricted(newAdminHandler(path), httpExchange);
             } else if (path.startsWith("/api/guest/")) {
-                handle(newGuestHandler(path), httpExchange);
+                handleRestricted(newGuestHandler(path), httpExchange);
             } else if (path.startsWith("/api/")) {
                 throw new Exception("Service not found: " + path);
             } else {
@@ -128,9 +129,9 @@ public class PostgraHttpService implements HttpHandler {
         } else if (method.equals("HEAD")) {
             handleContent(new HeadContent(), httpExchange);
         } else if (method.equals("POST")) {
-            handle(new SaveContent(), httpExchange);
+            handleRestricted(new SaveContent(), httpExchange);
         } else if (method.equals("DELETE")) {
-            handle(new DeleteContent(), httpExchange);
+            handleRestricted(new DeleteContent(), httpExchange);
         } else {
             throw new Exception("Service not found: " + path);
         }
@@ -202,8 +203,17 @@ public class PostgraHttpService implements HttpHandler {
         throw new Exception("Service not found: " + path);
     }
 
-    private void handle(PostgraHttpxHandler handler, HttpExchange httpExchange) {
-        handle(handler, new PostgraHttpx(app, httpExchange));
+    private void handleRestricted(PostgraHttpxHandler handler, HttpExchange httpExchange) 
+            throws GeneralSecurityException {
+        PostgraHttpx httpx = new PostgraHttpx(app, httpExchange);
+        httpx.ensureAllowed();
+        handle(handler, httpx);
+    }
+    
+    private void handle(PostgraHttpxHandler handler, HttpExchange httpExchange) 
+            throws GeneralSecurityException {
+        PostgraHttpx httpx = new PostgraHttpx(app, httpExchange);
+        handle(handler, httpx);
     }
 
     private void handleContent(PostgraHttpxContentHandler handler, HttpExchange httpExchange) {
