@@ -20,9 +20,6 @@
  */
 package postgra.api.upload;
 
-import postgra.api.access.*;
-import postgra.api.guest.*;
-import java.util.Date;
 import javax.persistence.PersistenceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,10 +28,8 @@ import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
 import postgra.entity.Person;
-import vellum.crypto.hmac.Hmacs;
 import vellum.jx.JMap;
 import vellum.jx.JMapException;
-import vellum.jx.JMapsException;
 
 /**
  *
@@ -52,28 +47,19 @@ public class PostContent implements PostgraHttpxHandler {
         final JMap requestMap = httpx.parseJsonMap();
         PostgraEntityService es = app.beginEntityService();
         try {
-            String email = requestMap.getString("email");
-            String password = requestMap.getString("password");
+            String email = httpx.getRequestHeader("email");
+            String accessToken = httpx.getRequestHeader("accessToken");
+            String contentType = httpx.getRequestHeader("content-type");
+            // TODO auth access token
             Person person = es.findPerson(email);
             if (person == null) {
                 throw new PersistenceException("Email not found: " + email);
             }
-            if (!person.matchesPassword(password.toCharArray())) {
-                throw new PersistenceException("Invalid password");
-            }
-            String hmacSecret = Hmacs.generateSecret();
-            Date loginTime = new Date();
-            person.setLoginTime(loginTime);
-            person.setHmacSecret(hmacSecret);
             es.commit();
             responseMap.put("email", email);
-            responseMap.put("loginTime", loginTime.getTime());
-            responseMap.put("hmacSecret", hmacSecret);
-            String token = app.encrypt(responseMap);
-            responseMap = app.decrypt(token);
-            responseMap.put("authToken", token);
+            responseMap.put("contentType", contentType);
             return responseMap;
-        } catch (JMapsException | PersistenceException e) {
+        } catch (PersistenceException e) {
             throw new JMapException(responseMap, e.getMessage());
         } finally {
             es.close();

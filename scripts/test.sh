@@ -24,6 +24,13 @@ c2curl() {
   echo 
 }
 
+c2curlp() {
+  curl -s -k https://localhost:8443/api/$1 -d @- -H "email: $email" -H "content-type: $2" > $tmp/out
+  cat $tmp/out | python -mjson.tool || cat $tmp/out
+  curlCode=$?  
+  echo 
+}
+
 c1psqlc() {
   psql -h localhost postgra postgra -c "$1" 
 }
@@ -93,6 +100,10 @@ c0default() {
   c0guest
   c0dereg
   c0drop
+}
+
+c0testpost() {
+  echo "{}" | c2curlp upload/article 'application/json'
 }
 
 if [ $# -gt 0 ]
