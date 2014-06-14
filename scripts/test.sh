@@ -33,7 +33,7 @@ c1curld() {
 }
 
 c2curl() {
-  echo "$@"
+  echo "POST $@"
   curl -s -k https://localhost:8443/api/$1 -d "$2" > $tmp/out
   cat $tmp/out | python -mjson.tool || cat $tmp/out
   curlCode=$?  
@@ -41,7 +41,7 @@ c2curl() {
 }
 
 c2curlp() {
-  echo "$@ -- $email"
+  echo "POST $@ -- $email"
   curl -s -k https://localhost:8443/api/$1 -d @- -H "email: $email" -H "content-type: $2" > $tmp/out
   cat $tmp/out | python -mjson.tool || cat $tmp/out
   curlCode=$?  
