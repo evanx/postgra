@@ -21,6 +21,8 @@
 package postgra.app;
 
 import java.security.GeneralSecurityException;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import javax.persistence.EntityManager;
@@ -55,6 +57,7 @@ public class PostgraApp {
     boolean running = true;
     Thread initThread = new InitThread();
     Thread messageThread = new MessageThread(this);
+    Deque messageQueue = new ArrayDeque();
     ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
     DataSourceManager dataSourceManager = new DataSourceManager();
     AsymmetricCipher cipher = new AsymmetricCipher();
@@ -88,7 +91,9 @@ public class PostgraApp {
         emf = Persistence.createEntityManagerFactory(persistenceUnit);
         initalized = true;
         logger.info("initialized");
-        messageThread.start();
+        if (false) {
+            messageThread.start();
+        }
         logger.info("started");
     }
 
@@ -119,7 +124,7 @@ public class PostgraApp {
         if (webServer != null) {
             webServer.shutdown();
         }
-        if (messageThread != null) {
+        if (messageThread != null && messageThread.isAlive()) {
             messageThread.interrupt();
             messageThread.join(2000);
         }
@@ -136,8 +141,9 @@ public class PostgraApp {
 
         @Override
         public void run() {
-            while (running) {
+            while (running && !messageQueue.isEmpty()) {
                 try {
+                    Object message = messageQueue.poll();
                 } catch (Throwable t) {
                     logger.warn("run", t);
                 }
