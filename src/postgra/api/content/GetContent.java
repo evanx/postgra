@@ -50,10 +50,10 @@ public class GetContent implements PostgraHttpxContentHandler {
             String path = httpx.getPath().substring(pattern.length());
             Content content = es.findContent(path);
             if (content == null) {
-                throw new PersistenceException();
+                throw new PersistenceException("Not found: " + path);
+            } else {
+                httpx.sendResponse(content.getContentType(), content.getContent());
             }
-            httpx.sendResponse(content.getContentType(), content.getContent());
-            httpx.getOutputStream().write(content.getContent());
         } catch (PersistenceException e) {
             throw new JMapException(responseMap, e.getMessage());
         }

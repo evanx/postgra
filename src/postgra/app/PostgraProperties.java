@@ -21,14 +21,12 @@
 package postgra.app;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Set;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import vellum.json.JsonObjectDelegate;
 import vellum.jx.JConsoleMap;
 import vellum.jx.JMap;
+import vellum.jx.JMaps;
 import vellum.mail.MailerProperties;
 import vellum.system.SystemConsole;
 import vellum.util.MockableConsole;
@@ -48,26 +46,20 @@ public class PostgraProperties extends JConsoleMap {
     String privateKeyFile;
     String publicKeyFile;
     boolean testing = false;
-    Set<String> adminEmails = new HashSet();
+    List<String> adminEmails;
+    List<String> allowedAdminAddresses;
     MailerProperties mailerProperties = new MailerProperties();
     MockableConsole console; 
     
     public PostgraProperties() throws Exception {
-        this(new SystemConsole(), new Properties());
-    } 
-    
-    public PostgraProperties(MockableConsole console, Properties properties) throws Exception {
-        super(console, properties);
-        String jsonConfigFileName = getString("config.json", "config.json");
-        JsonObjectDelegate object = new JsonObjectDelegate(new File(jsonConfigFileName));
-        putAll(object.getMap());
-        publicKeyFile = object.getString("publicKeyFile");
-        privateKeyFile = object.getString("privateKeyFile");
-        appHost = object.getString("appHost");
-        testing = object.getBoolean("testing", testing);
-        adminEmails = object.getStringSet("adminEmails");
-        webServer = object.getMap("webServer");
-        mailerProperties.init(object.getMap("mailer"));
+        super(new SystemConsole(), JMaps.parseMap(Streams.readString(new File("config.json"))));
+        publicKeyFile = getString("publicKeyFile");
+        privateKeyFile = getString("privateKeyFile");
+        appHost = getString("appHost");
+        testing = getBoolean("testing", testing);
+        adminEmails = getList("adminEmails");
+        webServer = getMap("webServer");
+        mailerProperties.init(getMap("mailer"));
         mailerProperties.setLogoBytes(Streams.readBytes(getClass().getResourceAsStream("/resources/app48.png")));
         logger.info("mailer {}", mailerProperties);
     }

@@ -23,7 +23,6 @@ package postgra.app;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
-import vellum.system.SystemConsole;
 
 /**
  *
@@ -36,7 +35,7 @@ public class PostgraMain {
 
     public void init() throws Exception {
         PostgraApp app = new PostgraApp();
-        app.init(new PostgraProperties(new SystemConsole(), System.getProperties()));
+        app.init(new PostgraProperties());
     }
     
     public static void main(String[] args) throws Exception {

@@ -122,6 +122,7 @@ c0default() {
 
 c0testpost() {
   c0reg
+  echo '{ "title": "the title" }' | c2curlp content/article/test123 'application/json'
   echo '{ "title": "the title" }' | c2curlp content/article/test1234 'application/json'
   psql -x -h localhost postgra postgra -c "select * from content"
   c1curlh content/article/test1234 
