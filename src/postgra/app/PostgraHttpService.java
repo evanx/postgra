@@ -108,6 +108,7 @@ public class PostgraHttpService implements HttpHandler {
             e.printStackTrace(System.err);
         } catch (Exception e) {
             handle(httpExchange, e);
+            e.printStackTrace(System.err);
         } finally {
             requestCompletedCount++;
         }

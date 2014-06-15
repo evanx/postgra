@@ -49,18 +49,24 @@ public class SaveContent implements PostgraHttpxHandler {
     
     @Override
     public JMap handle(PostgraApp app, PostgraHttpx httpx) throws Exception {
-        logger.info("handle", httpx.getPathArgs());
+        logger.info("handle {}", httpx.getPath());
         PostgraEntityService es = app.beginEntityService();
         try {
             String email = httpx.getRequestHeader("email");
-            String accessToken = httpx.getRequestHeader("accessToken");
             String contentType = httpx.getRequestHeader("content-type");
-            // TODO auth access token
-            Person person = es.findPerson(email);
-            if (person == null) {
-                throw new PersistenceException("Email not found: " + email);
+            if (email == null) {
+                logger.warn("no email");
+            } else if (false) {
+                String accessToken = httpx.getRequestHeader("accessToken");
+                // TODO auth
+                Person person = es.findPerson(email);
+                if (person == null) {
+                    throw new PersistenceException("Email not found: " + email);
+                }
+                logger.info("person {}", person);
             }
             String path = httpx.getPath().substring(pattern.length());
+            logger.info("content", path);
             Content content = es.findContent(path);
             if (content == null) {
                 content = new Content(path);
@@ -69,7 +75,9 @@ public class SaveContent implements PostgraHttpxHandler {
                 content.setModified(now);
             }
             content.setContentType(contentType);
-            content.setContent(Streams.readBytes(httpx.getInputStream()));
+            byte[] bytes = Streams.readBytes(httpx.getInputStream());
+            logger.info("content length", bytes.length);
+            content.setContent(bytes);
             es.merge(content);
             es.commit();
             responseMap.put("email", email);

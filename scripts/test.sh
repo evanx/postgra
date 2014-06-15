@@ -120,15 +120,28 @@ c0default() {
   c0drop
 }
 
+c0psqlcontent() {
+  psql -x -h localhost postgra postgra -c "
+    select count(1), max(created) from content 
+  "
+}
+
+c1psqlcontent() {
+  psql -x -h localhost postgra postgra -c "
+    select content_id, content_type, content_length, path_ from content where path_ like '%${1}%'
+  "
+}
+
 c0testpost() {
   c0reg
   echo '{ "title": "the title" }' | c2curlp content/article/test123 'application/json'
   echo '{ "title": "the title" }' | c2curlp content/article/test1234 'application/json'
-  psql -x -h localhost postgra postgra -c "select * from content"
+  c0psqlcontent
+  c1psqlcontent test123
   c1curlh content/article/test1234 
   c1curlg content/article/test1234 
   c1curld content/article/test1234
-  psql -x -h localhost postgra postgra -c "select * from content"
+  c1psqlcontent test123
   c0dereg
 }
 
