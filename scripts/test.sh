@@ -34,7 +34,7 @@ c1curld() {
 
 c2curl() {
   echo "POST $@"
-  curl -s -k https://localhost:8443/api/$1 -d "$2" > $tmp/out
+  curl -s -k https://localhost:8443/api/$1 -d "$2" -H "cache-seconds: 600" > $tmp/out
   cat $tmp/out | python -mjson.tool || cat $tmp/out
   curlCode=$?  
   echo 

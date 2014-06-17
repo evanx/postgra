@@ -70,6 +70,9 @@ public class Content extends ComparableEntity implements Enabled, Serializable {
 
     @Column(name = "content_length")
     int contentLength;
+
+    @Column(name = "cache_secs")
+    int cacheSeconds = 300;
     
     @Lob
     @Column(name = "content", length = 100000)
@@ -141,6 +144,14 @@ public class Content extends ComparableEntity implements Enabled, Serializable {
         return contentLength;
     }
 
+    public void setCacheSeconds(int cacheSeconds) {
+        this.cacheSeconds = cacheSeconds;
+    }
+
+    public int getCacheSeconds() {
+        return cacheSeconds;
+    }
+    
     public void setContentLength(int contentLength) {
         this.contentLength = contentLength;
     }

@@ -204,14 +204,14 @@ public class PostgraHttpService implements HttpHandler {
         throw new Exception("Service not found: " + path);
     }
 
-    private void handleRestricted(PostgraHttpxHandler handler, HttpExchange httpExchange) 
+    private void handleRestricted(PostgraHttpxHandler handler, HttpExchange httpExchange)
             throws GeneralSecurityException {
         PostgraHttpx httpx = new PostgraHttpx(app, httpExchange);
         httpx.ensureAllowed();
         handle(handler, httpx);
     }
-    
-    private void handle(PostgraHttpxHandler handler, HttpExchange httpExchange) 
+
+    private void handle(PostgraHttpxHandler handler, HttpExchange httpExchange)
             throws GeneralSecurityException {
         PostgraHttpx httpx = new PostgraHttpx(app, httpExchange);
         handle(handler, httpx);
@@ -220,7 +220,7 @@ public class PostgraHttpService implements HttpHandler {
     private void handleContent(PostgraHttpxContentHandler handler, HttpExchange httpExchange) {
         handleContent(handler, new PostgraHttpx(app, httpExchange));
     }
-    
+
     private void handleContent(PostgraHttpxContentHandler handler, PostgraHttpx httpx) {
         try {
             handler.handle(app, httpx);

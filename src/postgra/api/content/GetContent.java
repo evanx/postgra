@@ -28,6 +28,7 @@ import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxContentHandler;
 import postgra.entity.Content;
+import vellum.data.Millis;
 import vellum.jx.JMap;
 import vellum.jx.JMapException;
 
@@ -52,6 +53,7 @@ public class GetContent implements PostgraHttpxContentHandler {
             if (content == null) {
                 throw new PersistenceException("Not found: " + path);
             } else {
+                httpx.setCors(content.getCacheSeconds());
                 httpx.sendResponse(content.getContentType(), content.getContent());
             }
         } catch (PersistenceException e) {

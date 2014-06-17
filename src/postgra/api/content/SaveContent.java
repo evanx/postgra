@@ -54,6 +54,7 @@ public class SaveContent implements PostgraHttpxHandler {
         try {
             String email = httpx.getRequestHeader("email");
             String contentType = httpx.getRequestHeader("content-type");
+            String cacheSecondsString = httpx.getRequestHeader("cache-seconds");
             if (email == null) {
                 logger.warn("no email");
             } else if (false) {
@@ -73,6 +74,9 @@ public class SaveContent implements PostgraHttpxHandler {
                 content.setCreated(now);
             } else {
                 content.setModified(now);
+            }
+            if (cacheSecondsString != null) {
+                content.setCacheSeconds(Integer.parseInt(cacheSecondsString));
             }
             content.setContentType(contentType);
             byte[] bytes = Streams.readBytes(httpx.getInputStream());
