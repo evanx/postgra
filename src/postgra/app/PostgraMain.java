@@ -20,9 +20,6 @@
  */
 package postgra.app;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
 
 /**
  *
@@ -40,9 +37,6 @@ public class PostgraMain {
     
     public static void main(String[] args) throws Exception {
         try {
-            Logger.getRootLogger().getLoggerRepository().resetConfiguration();
-            Logger.getRootLogger().addAppender(new ConsoleAppender(
-                    new PatternLayout("%d{ISO8601} %p [%c{1}] %m%n")));
             new PostgraMain().init();
         } catch (Exception e) {
             e.printStackTrace(System.err);

@@ -24,17 +24,14 @@ import postgra.app.PostgraUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import postgra.app.PostgraApp;
-import postgra.app.PostgraEntityService;
 import postgra.app.PostgraHttpx;
 import postgra.app.PostgraHttpxHandler;
 import postgra.jdbc.DataSources;
 import vellum.jx.JMap;
 import vellum.jx.JMapException;
-import vellum.util.Lists;
 
 /**
  *
