@@ -4,8 +4,9 @@ set -u
 
 cd ~/nb/lib/maven
 
-gson_2_3='com/google/code/gson/gson/2.3/gson-2.3'
-gson_2_2_2='com/google/code/gson/gson/2.3/gson-2.2.2'
+gsonPath='com/google/code/gson/gson'
+gson_2_3="$gsonPath/2.3/gson-2.3"
+gson_2_2_2="gsonPath/2.2_2/gson-2.2.2.jar"
 tomcat_jdbc='org/apache/tomcat/tomcat-jdbc/8.0.9/tomcat-jdbc-8.0.9'
 
 wget_gson() {
